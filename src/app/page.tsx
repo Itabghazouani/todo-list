@@ -1,4 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
+import { prisma } from '@/lib/prisma';
+import { ITodo } from '@/types/todos';
+import HomeComponent from '@/components/todo/HomeComponent';
 
 const Home = async () => {
   try {
@@ -6,27 +9,41 @@ const Home = async () => {
 
     if (!userId) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <h1 className="text-4xl font-bold">Welcome to Todo App</h1>
-          <p>Please sign in to continue</p>
+        <div className="hero min-h-[calc(100vh-4rem)] bg-base-200">
+          <div className="hero-content text-center">
+            <div className="max-w-md">
+              <h1 className="text-5xl font-bold text-base-content">
+                Welcome to Todo App
+              </h1>
+              <p className="py-6 text-base-content/70">
+                Please sign in to manage your tasks and stay organized
+              </p>
+            </div>
+          </div>
         </div>
       );
     }
 
-    return (
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">My Todos</h1>
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-gray-600">You&apos;ll see your todos here soon!</p>
-        </div>
-      </main>
-    );
+    const todos = await prisma.todo.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return <HomeComponent initialTodos={todos as ITodo[]} />;
   } catch (error) {
-    console.error('Auth error:', error);
+    console.error('Error:', error);
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-4xl font-bold">Something went wrong</h1>
-        <p>Please try again later</p>
+      <div className="hero min-h-[calc(100vh-4rem)] bg-base-200">
+        <div className="hero-content text-center">
+          <div className="max-w-md">
+            <div className="alert alert-error">
+              <div>
+                <h1 className="text-2xl font-bold">Something went wrong</h1>
+                <p className="opacity-70">Please try again later</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

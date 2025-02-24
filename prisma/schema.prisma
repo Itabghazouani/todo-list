@@ -23,12 +23,22 @@ model User {
 model Todo {
   id        String   @id @default(uuid()) @map("_id")
   desc      String
-  category  String
+  category  Category // Changed to use enum
   priority  Priority
   completed Boolean  @default(false)
   createdAt DateTime @default(now())
-  userId    String // Foreign key to User
+  userId    String
   user      User     @relation(fields: [userId], references: [id])
+}
+
+enum Category {
+  SPORT          @map("Sport")
+  WORK           @map("Travail")
+  ADMINISTRATIVE @map("Administratif")
+  HOME           @map("Maison")
+  HOBBIES        @map("Hobbies")
+  SHOPPING       @map("Shopping")
+  OTHER          @map("Autre")
 }
 
 enum Priority {

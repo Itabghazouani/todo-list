@@ -10,6 +10,7 @@ import {
   SignUpButton,
   UserButton,
 } from '@clerk/nextjs';
+import { ThemeProvider } from '@/components/themes/ThemeProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -34,21 +35,40 @@ const RootLayout = ({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
-            <SignedOut>
-              <SignInButton />
-              <SignUpButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />{' '}
-              {/* Simplified - Clerk will handle the redirect automatically */}
-            </SignedIn>
-          </header>
-          {children}
-        </body>
+        <ThemeProvider>
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased bg-base-100 text-base-content min-h-screen`}
+          >
+            <header className="bg-base-200 border-b border-base-300">
+              <div className="max-w-7xl mx-auto flex justify-end items-center p-4 gap-4 h-16">
+                <SignedOut>
+                  {/* Using DaisyUI button classes for sign-in/up buttons */}
+                  <div className="flex gap-2">
+                    <SignInButton mode="modal">
+                      <button className="btn btn-sm btn-ghost">Sign in</button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <button className="btn btn-sm btn-primary">
+                        Sign up
+                      </button>
+                    </SignUpButton>
+                  </div>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: {
+                        rootBox: 'hover:opacity-80 transition-opacity',
+                      },
+                    }}
+                  />
+                </SignedIn>
+              </div>
+            </header>
+            <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+          </body>
+        </ThemeProvider>
       </html>
     </ClerkProvider>
   );
