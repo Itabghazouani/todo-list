@@ -53,7 +53,6 @@ const AddTodo = ({ onTodoAdded }: IAddTodoProps) => {
         throw new Error('Failed to create todo');
       }
 
-      // Get the new todo from the response and pass it to the callback
       const newTodo = await response.json();
       onTodoAdded?.(newTodo);
 

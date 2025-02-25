@@ -50,7 +50,6 @@ export const TodoCard = ({
     }
   };
 
-  // Handle delete action
   const handleDelete = () => {
     if (!isPreview && onDelete) {
       onDelete(todo.id);
@@ -96,7 +95,6 @@ export const TodoCard = ({
               </div>
             </div>
 
-            {/* Action Buttons - Only show if not in preview mode */}
             {!isPreview && (
               <div className="flex gap-2">
                 <button

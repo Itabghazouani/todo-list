@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { InfoIcon } from 'lucide-react';
-
 import { ITodo, ITodoBase } from '@/types/todos';
 import { TodoCard } from './TodoCard';
+import SearchAndFilterBar from './SearchAndFilterBar';
 
 interface ITodoListProps {
   todos: ITodo[];
@@ -12,10 +12,38 @@ interface ITodoListProps {
 
 const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
   const [todos, setTodos] = useState<ITodo[]>(initialTodos);
+  const [filteredTodos, setFilteredTodos] = useState<ITodo[]>(initialTodos);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  const [showCompleted, setShowCompleted] = useState(true);
 
   useEffect(() => {
     setTodos(initialTodos);
   }, [initialTodos]);
+
+  useEffect(() => {
+    let result = [...todos];
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter((todo) => todo.desc.toLowerCase().includes(term));
+    }
+
+    if (categoryFilter) {
+      result = result.filter((todo) => todo.category === categoryFilter);
+    }
+
+    if (priorityFilter) {
+      result = result.filter((todo) => todo.priority === priorityFilter);
+    }
+
+    if (!showCompleted) {
+      result = result.filter((todo) => !todo.completed);
+    }
+
+    setFilteredTodos(result);
+  }, [todos, searchTerm, categoryFilter, priorityFilter, showCompleted]);
 
   const updateTodoInDatabase = async (updatedTodo: ITodo) => {
     try {
@@ -91,8 +119,15 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
     <div className="w-full">
       {stats}
 
+      <SearchAndFilterBar
+        onSearch={setSearchTerm}
+        onCategoryFilter={setCategoryFilter}
+        onPriorityFilter={setPriorityFilter}
+        onCompletedFilter={setShowCompleted}
+      />
+
       <div className="divide-y divide-base-300">
-        {todos.map((todo) => (
+        {filteredTodos.map((todo) => (
           <div key={todo.id} className="py-4 first:pt-0 last:pb-0">
             <TodoCard
               todo={todo}
@@ -103,12 +138,23 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
         ))}
       </div>
 
-      {todos.length === 0 && (
+      {filteredTodos.length === 0 && (
         <div className="alert alert-info">
           <InfoIcon className="stroke-current shrink-0 w-6 h-6" />
           <div>
-            <h3 className="font-bold">No tasks yet</h3>
-            <div className="text-xs">Add your first task to get started!</div>
+            {todos.length === 0 ? (
+              <>
+                <h3 className="font-bold">No tasks yet</h3>
+                <div className="text-xs">
+                  Add your first task to get started!
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="font-bold">No matching tasks</h3>
+                <div className="text-xs">Try adjusting your filters</div>
+              </>
+            )}
           </div>
         </div>
       )}

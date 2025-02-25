@@ -16,7 +16,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (userId) {
-      // Fetch user data from your MongoDB database
       fetch(`/api/users/${userId}`)
         .then((res) => res.json())
         .then((data) => {

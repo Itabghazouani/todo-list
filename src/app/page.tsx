@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { ITodo } from '@/types/todos';
 import HomeComponent from '@/components/todo/HomeComponent';
+import { PRIORITY_ORDER } from '@/constants';
 
 const Home = async () => {
   try {
@@ -26,10 +27,16 @@ const Home = async () => {
 
     const todos = await prisma.todo.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
     });
 
-    return <HomeComponent initialTodos={todos as ITodo[]} />;
+    const sortedTodos = [...todos].sort((a, b) => {
+      return (
+        PRIORITY_ORDER[a.priority as string] -
+        PRIORITY_ORDER[b.priority as string]
+      );
+    });
+
+    return <HomeComponent initialTodos={sortedTodos as ITodo[]} />;
   } catch (error) {
     console.error('Error:', error);
     return (
