@@ -4,9 +4,12 @@ import { useEffect, useState } from 'react';
 import { AddTodo } from '@/components';
 import TodoList from '@/components/todo/TodoList';
 import EisenhowerMatrix from '@/components/EisenhowerMatrix';
+import ClearTodos from '@/components/todo/ClearTodos';
+import Toast from '@/components/ui/Toast';
 import { ITodo } from '@/types/todos';
-import { PRIORITIES, PRIORITY_ORDER } from '@/constants';
-import ClearTodos from './ClearTodos';
+import { useToastStore } from '@/store/toastStore';
+import { LayoutGrid, List } from 'lucide-react';
+import { sortTodosByPriority } from '@/utils/todoUtils';
 
 interface IHomeComponentProps {
   initialTodos: ITodo[];
@@ -15,15 +18,7 @@ interface IHomeComponentProps {
 const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
   const [todos, setTodos] = useState<ITodo[]>(initialTodos);
   const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
-
-  const sortTodosByPriority = (todosToSort: ITodo[]): ITodo[] => {
-    return [...todosToSort].sort((a, b) => {
-      const priorityAValue = PRIORITIES[a.priority];
-      const priorityBValue = PRIORITIES[b.priority];
-
-      return PRIORITY_ORDER[priorityAValue] - PRIORITY_ORDER[priorityBValue];
-    });
-  };
+  const { addToast } = useToastStore();
 
   useEffect(() => {
     const sortedTodos = sortTodosByPriority(initialTodos);
@@ -34,6 +29,7 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
     setTodos((prev) => {
       return sortTodosByPriority([...prev, newTodo]);
     });
+    addToast('Todo added successfully!', 'success');
   };
 
   const handleClearCompleted = async () => {
@@ -51,8 +47,10 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
       }
 
       setTodos((prevTodos) => prevTodos.filter((todo) => !todo.completed));
+      addToast('Completed todos cleared successfully', 'success');
     } catch (error) {
       console.error('Error clearing completed todos:', error);
+      addToast('Failed to clear completed todos', 'error');
     }
   };
 
@@ -71,8 +69,10 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
       }
 
       setTodos([]);
+      addToast('All todos cleared successfully', 'success');
     } catch (error) {
       console.error('Error clearing all todos:', error);
+      addToast('Failed to clear all todos', 'error');
     }
   };
 
@@ -80,6 +80,7 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-base-100">
+      <Toast />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="card bg-base-200 shadow-lg mb-8 p-6">
@@ -92,22 +93,24 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
             </div>
           </div>
 
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
             <div className="join">
               <button
-                className={`btn join-item ${
+                className={`btn join-item gap-2 ${
                   viewMode === 'list' ? 'btn-active' : ''
                 }`}
                 onClick={() => setViewMode('list')}
               >
+                <List size={18} />
                 List View
               </button>
               <button
-                className={`btn join-item ${
+                className={`btn join-item gap-2 ${
                   viewMode === 'matrix' ? 'btn-active' : ''
                 }`}
                 onClick={() => setViewMode('matrix')}
               >
+                <LayoutGrid size={18} />
                 Matrix View
               </button>
             </div>
@@ -122,7 +125,13 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
 
           <div className="card bg-base-200 shadow-lg">
             <div className="card-body">
-              {viewMode === 'list' ? (
+              {todos.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-lg opacity-70">
+                    No todos yet. Add some tasks to get started!
+                  </p>
+                </div>
+              ) : viewMode === 'list' ? (
                 <TodoList todos={todos} />
               ) : (
                 <EisenhowerMatrix todos={todos} />

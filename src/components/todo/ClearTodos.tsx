@@ -2,9 +2,12 @@
 
 import { useState } from 'react';
 
+import { Trash2, CheckSquare } from 'lucide-react';
+import { ConfirmDialog, LoadingButton } from '../ui';
+
 interface IClearTodosProps {
-  onClearCompleted: () => void;
-  onClearAll: () => void;
+  onClearCompleted: () => Promise<void>;
+  onClearAll: () => Promise<void>;
   completedCount: number;
   totalCount: number;
 }
@@ -15,46 +18,64 @@ const ClearTodos = ({
   completedCount,
   totalCount,
 }: IClearTodosProps) => {
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [isCompletedLoading, setIsCompletedLoading] = useState(false);
+  const [isAllLoading, setIsAllLoading] = useState(false);
+  const [showConfirmClearAll, setShowConfirmClearAll] = useState(false);
+
+  const handleClearCompleted = async () => {
+    setIsCompletedLoading(true);
+    try {
+      await onClearCompleted();
+    } finally {
+      setIsCompletedLoading(false);
+    }
+  };
+
+  const handleClearAll = async () => {
+    setIsAllLoading(true);
+    try {
+      await onClearAll();
+    } finally {
+      setIsAllLoading(false);
+    }
+    setShowConfirmClearAll(false);
+  };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-2 mb-4">
-      <button
-        className="btn btn-outline btn-sm"
-        onClick={onClearCompleted}
-        disabled={completedCount === 0}
-      >
-        Clear Completed ({completedCount})
-      </button>
-
-      {!showConfirm ? (
-        <button
-          className="btn btn-outline btn-error btn-sm"
-          onClick={() => setShowConfirm(true)}
-          disabled={totalCount === 0}
+    <>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <LoadingButton
+          className="btn-outline btn-sm gap-2"
+          onClick={handleClearCompleted}
+          disabled={completedCount === 0}
+          isLoading={isCompletedLoading}
+          loadingText="Clearing..."
         >
+          <CheckSquare size={16} />
+          Clear Completed ({completedCount})
+        </LoadingButton>
+
+        <LoadingButton
+          className="btn-outline btn-error btn-sm gap-2"
+          onClick={() => setShowConfirmClearAll(true)}
+          disabled={totalCount === 0}
+          isLoading={isAllLoading}
+        >
+          <Trash2 size={16} />
           Clear All Todos
-        </button>
-      ) : (
-        <div className="flex gap-2">
-          <button
-            className="btn btn-error btn-sm"
-            onClick={() => {
-              onClearAll();
-              setShowConfirm(false);
-            }}
-          >
-            Confirm Clear All
-          </button>
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => setShowConfirm(false)}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-    </div>
+        </LoadingButton>
+      </div>
+
+      <ConfirmDialog
+        isOpen={showConfirmClearAll}
+        title="Clear All Todos"
+        message="Are you sure you want to delete all your todos? This action cannot be undone."
+        confirmText="Yes, Clear All"
+        confirmButtonClass="btn-error"
+        onConfirm={handleClearAll}
+        onCancel={() => setShowConfirmClearAll(false)}
+      />
+    </>
   );
 };
 

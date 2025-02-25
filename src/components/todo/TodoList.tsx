@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { InfoIcon } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { InfoIcon, Filter, XCircle } from 'lucide-react';
 import { ITodo, ITodoBase } from '@/types/todos';
 import { TodoCard } from './TodoCard';
 import SearchAndFilterBar from './SearchAndFilterBar';
+import { useToastStore } from '@/store/toastStore';
+import LoadingSpinner from '../ui/LoadingSpinner';
+import { sortTodosByPriority } from '@/utils/todoUtils';
 
 interface ITodoListProps {
   todos: ITodo[];
@@ -17,12 +20,19 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(true);
+  const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
+  const { addToast } = useToastStore();
 
+  // Track active filters for display
+  const hasActiveFilters =
+    searchTerm || categoryFilter || priorityFilter || !showCompleted;
+
+  // Apply filters when dependencies change
   useEffect(() => {
     setTodos(initialTodos);
   }, [initialTodos]);
 
-  useEffect(() => {
+  const applyFilters = useCallback(() => {
     let result = [...todos];
 
     if (searchTerm) {
@@ -45,7 +55,21 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
     setFilteredTodos(result);
   }, [todos, searchTerm, categoryFilter, priorityFilter, showCompleted]);
 
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setCategoryFilter(null);
+    setPriorityFilter(null);
+    setShowCompleted(true);
+    addToast('Filters cleared', 'info');
+  };
+
   const updateTodoInDatabase = async (updatedTodo: ITodo) => {
+    setIsLoading((prev) => ({ ...prev, [updatedTodo.id]: true }));
+
     try {
       const response = await fetch(`/api/todos/${updatedTodo.id}`, {
         method: 'PUT',
@@ -55,13 +79,22 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
 
       if (!response.ok) throw new Error('Failed to update todo');
 
-      setTodos((currentTodos) =>
-        currentTodos.map((todo) =>
+      // Update the todo in state
+      setTodos((currentTodos) => {
+        const updatedTodos = currentTodos.map((todo) =>
           todo.id === updatedTodo.id ? updatedTodo : todo,
-        ),
-      );
+        );
+
+        // Re-sort the todos after update (using your sorting utility)
+        return sortTodosByPriority(updatedTodos);
+      });
+
+      addToast('Task updated successfully', 'success');
     } catch (error) {
       console.error('Failed to update todo:', error);
+      addToast('Failed to update task', 'error');
+    } finally {
+      setIsLoading((prev) => ({ ...prev, [updatedTodo.id]: false }));
     }
   };
 
@@ -79,6 +112,8 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
   };
 
   const handleTodoDelete = async (todoId: string) => {
+    setIsLoading((prev) => ({ ...prev, [todoId]: true }));
+
     try {
       const response = await fetch(`/api/todos/${todoId}`, {
         method: 'DELETE',
@@ -89,8 +124,13 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
       setTodos((currentTodos) =>
         currentTodos.filter((todo) => todo.id !== todoId),
       );
+
+      addToast('Task deleted successfully', 'success');
     } catch (error) {
       console.error('Failed to delete todo:', error);
+      addToast('Failed to delete task', 'error');
+    } finally {
+      setIsLoading((prev) => ({ ...prev, [todoId]: false }));
     }
   };
 
@@ -124,15 +164,41 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
         onCategoryFilter={setCategoryFilter}
         onPriorityFilter={setPriorityFilter}
         onCompletedFilter={setShowCompleted}
+        initialSearchTerm={searchTerm}
+        initialCategoryFilter={categoryFilter}
+        initialPriorityFilter={priorityFilter}
+        initialShowCompleted={showCompleted}
       />
+
+      {hasActiveFilters && (
+        <div className="flex items-center justify-between mb-4 mt-2">
+          <div className="badge badge-outline gap-1">
+            <Filter size={14} />
+            <span>Filters applied</span>
+          </div>
+          <button
+            onClick={clearFilters}
+            className="btn btn-xs btn-ghost text-error gap-1"
+          >
+            <XCircle size={14} />
+            Clear all filters
+          </button>
+        </div>
+      )}
 
       <div className="divide-y divide-base-300">
         {filteredTodos.map((todo) => (
-          <div key={todo.id} className="py-4 first:pt-0 last:pb-0">
+          <div key={todo.id} className="py-4 first:pt-0 last:pb-0 relative">
+            {isLoading[todo.id] && (
+              <div className="absolute inset-0 bg-base-200 bg-opacity-50 flex items-center justify-center z-10">
+                <LoadingSpinner size={24} />
+              </div>
+            )}
             <TodoCard
               todo={todo}
               onUpdate={handleCardUpdate}
               onDelete={handleTodoDelete}
+              isLoading={!!isLoading[todo.id]}
             />
           </div>
         ))}
@@ -152,7 +218,11 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
             ) : (
               <>
                 <h3 className="font-bold">No matching tasks</h3>
-                <div className="text-xs">Try adjusting your filters</div>
+                <div className="text-xs">
+                  {hasActiveFilters
+                    ? 'Try adjusting your filters'
+                    : 'Try adding some tasks'}
+                </div>
               </>
             )}
           </div>
