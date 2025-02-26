@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { ITodoBase } from '@/types/todos';
 import { PRIORITIES, PRIORITY_STYLES } from '@/constants/priorities';
-import { TodoCard } from '@/components';
+
 import { CheckCircle, Clock, UserPlus, Trash2 } from 'lucide-react';
+import { TodoCard } from './todo';
 
 interface EisenhowerMatrixProps {
   todos: ITodoBase[];

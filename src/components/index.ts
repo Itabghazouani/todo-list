@@ -1,6 +1,4 @@
-import AddTodo from './todo/AddTodo';
+import AppHeader from './Header';
 import Modal from './Modal';
-import { TodoCard } from './todo/TodoCard';
-import TodoList from './todo/TodoList';
 
-export { AddTodo, Modal, TodoCard, TodoList };
+export { AppHeader, Modal };

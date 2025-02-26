@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AddTodo } from '@/components';
+
 import TodoList from '@/components/todo/TodoList';
 import EisenhowerMatrix from '@/components/EisenhowerMatrix';
 import ClearTodos from '@/components/todo/ClearTodos';
@@ -10,6 +10,7 @@ import { ITodo } from '@/types/todos';
 import { useToastStore } from '@/store/toastStore';
 import { LayoutGrid, List } from 'lucide-react';
 import { sortTodosByPriority } from '@/utils/todoUtils';
+import AddTodo from './AddTodo';
 
 interface IHomeComponentProps {
   initialTodos: ITodo[];

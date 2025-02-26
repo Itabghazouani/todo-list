@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Check, Search, Moon, Sun, PaintBucket } from 'lucide-react';
 import { useThemeStore } from '@/store/themeStore';
 import { THEMES, PRIORITIES } from '@/constants';
-import { TodoCard } from '@/components';
+
 import { SAMPLE_TODOS } from '@/constants/sampleTodos';
 import { useToastStore } from '@/store/toastStore';
 import { TTheme } from '@/types/themes';
+import { TodoCard } from '@/components/todo';
 
 const ThemesPage = () => {
   const { theme, setTheme } = useThemeStore();

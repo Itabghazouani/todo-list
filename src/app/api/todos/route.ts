@@ -27,3 +27,26 @@ export async function POST(request: Request) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
+
+export async function GET() {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const todos = await prisma.todo.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json(todos);
+  } catch (error) {
+    console.error('Error fetching todos:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch todos' },
+      { status: 500 },
+    );
+  }
+}
