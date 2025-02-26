@@ -307,7 +307,7 @@ const MatrixExplanationPage = () => {
         {/* Conclusion & CTA */}
         <section className="bg-base-200 p-8 rounded-lg">
           <div className="prose prose-lg max-w-none">
-            <h2>Conclusion</h2>
+            <h2 className="font-semibold">Conclusion</h2>
             <p>
               The Eisenhower Matrix is a simple yet effective way to organize
               tasks and focus on what truly matters. Whether you are managing
@@ -319,7 +319,7 @@ const MatrixExplanationPage = () => {
 
           <div className="mt-8 flex flex-col items-center">
             <Link href="/" className="btn btn-primary btn-lg gap-2">
-              Start Using the Eisenhower Matrix Now
+              <span>Start Using the Matrix Now</span>
               <ArrowRight size={18} />
             </Link>
             <p className="mt-4 text-base-content/70 text-center">
