@@ -21,10 +21,15 @@ export const metadata: Metadata = {
   title: 'Todo App - Eisenhower Matrix',
   description: 'Organize your tasks using the Eisenhower Matrix',
   manifest: '/manifest.json',
-  icons: {
-    icon: '/icon-192x192.png',
-    apple: '/icon-192x192.png',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Todo App',
   },
+  formatDetection: {
+    telephone: false,
+  },
+  themeColor: '#000000',
 };
 
 const RootLayout = ({
@@ -35,6 +40,10 @@ const RootLayout = ({
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        </head>
         <ThemeProvider>
           <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased bg-base-100 text-base-content min-h-screen`}

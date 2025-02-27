@@ -1,7 +1,7 @@
 {
-  "name": "Todo Matrix",
-  "short_name": "Todo Matrix",
-  "description": "Organize tasks using the Eisenhower Matrix",
+  "name": "Todo App - Eisenhower Matrix",
+  "short_name": "Todo App",
+  "description": "Organize your tasks using the Eisenhower Matrix",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
