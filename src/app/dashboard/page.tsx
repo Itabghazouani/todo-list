@@ -53,7 +53,7 @@ const DashboardPage = () => {
             Start by adding some tasks to see your productivity dashboard.
           </p>
           <Link href="/" className="btn btn-primary">
-            Go to Tasks
+            Go to Home page
           </Link>
         </div>
       </div>

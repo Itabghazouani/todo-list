@@ -1,5 +1,5 @@
+import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import { CheckCircle } from 'lucide-react';
-import Link from 'next/link';
 
 const WelcomeComponent = () => (
   <div className="hero min-h-[calc(100vh-4rem)] bg-base-200 px-4">
@@ -55,12 +55,16 @@ const WelcomeComponent = () => (
           </div>
         </div>
         <div className="flex flex-col sm:flex-row justify-center sm:space-x-4 space-y-3 sm:space-y-0">
-          <Link href="/sign-in" className="btn btn-primary w-full sm:w-auto">
-            Sign In
-          </Link>
-          <Link href="/sign-up" className="btn btn-outline w-full sm:w-auto">
-            Sign Up
-          </Link>
+          <SignInButton mode="modal">
+            <button className="btn btn-primary w-full sm:w-auto">
+              Sign In
+            </button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <button className="btn btn-outline w-full sm:w-auto">
+              Sign Up
+            </button>
+          </SignUpButton>
         </div>
       </div>
     </div>

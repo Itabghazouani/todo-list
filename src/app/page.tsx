@@ -10,6 +10,8 @@ import {
   WelcomeComponent,
 } from '@/components/home';
 
+export const dynamic = 'force-dynamic';
+
 const Home = async () => {
   try {
     const { userId } = await auth();
