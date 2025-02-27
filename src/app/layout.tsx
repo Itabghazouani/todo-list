@@ -20,6 +20,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Todo App - Eisenhower Matrix',
   description: 'Organize your tasks using the Eisenhower Matrix',
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/icon-192x192.png',
+    apple: '/icon-192x192.png',
+  },
 };
 
 const RootLayout = ({
