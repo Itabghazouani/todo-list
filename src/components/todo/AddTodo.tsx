@@ -155,12 +155,22 @@ const AddTodo = ({ onTodoAdded, parentId }: IAddTodoProps) => {
 
   return (
     <div>
+      {/* Desktop version - Full width button */}
       <button
         onClick={handleOpenModal}
-        className="btn btn-primary w-full gap-2"
+        className="btn btn-primary w-full gap-2 hidden sm:flex justify-center"
       >
         {parentId ? 'Add subtask' : 'Add new task'}
         <Plus className="h-5 w-5" />
+      </button>
+
+      {/* Mobile version - Fixed button at bottom right */}
+      <button
+        onClick={handleOpenModal}
+        className="btn btn-primary btn-circle shadow-lg fixed bottom-8 right-8 z-10 sm:hidden"
+        aria-label={parentId ? 'Add subtask' : 'Add new task'}
+      >
+        <Plus className="h-6 w-6" />
       </button>
 
       <Modal modalOpen={modalOpen} setModalOpen={setModalOpen}>
@@ -223,7 +233,7 @@ const AddTodo = ({ onTodoAdded, parentId }: IAddTodoProps) => {
             <label className="label">
               <span className="label-text">Priority</span>
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {Object.entries(PRIORITIES).map(([key, value]) => (
                 <div
                   key={key}

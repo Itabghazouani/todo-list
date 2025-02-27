@@ -95,21 +95,21 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-5xl">
+      <div className="space-y-4 sm:space-y-6 md:space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-base-content">
+            <h1 className="text-2xl sm:text-3xl font-bold text-base-content">
               Your Productivity Dashboard
             </h1>
-            <p className="text-base-content/70 mt-1">
+            <p className="text-sm sm:text-base text-base-content/70 mt-1">
               Track your progress and gain insights into your task management
             </p>
           </div>
 
-          <div className="join">
+          <div className="join w-full md:w-auto grid grid-cols-3 sm:flex mt-3 md:mt-0">
             <button
-              className={`join-item btn ${
+              className={`join-item btn btn-sm sm:btn-md ${
                 timePeriod === 'week' ? 'btn-active' : ''
               }`}
               onClick={() => setTimePeriod('week')}
@@ -117,7 +117,7 @@ const DashboardPage = () => {
               Week
             </button>
             <button
-              className={`join-item btn ${
+              className={`join-item btn btn-sm sm:btn-md ${
                 timePeriod === 'month' ? 'btn-active' : ''
               }`}
               onClick={() => setTimePeriod('month')}
@@ -125,62 +125,80 @@ const DashboardPage = () => {
               Month
             </button>
             <button
-              className={`join-item btn ${
+              className={`join-item btn btn-sm sm:btn-md ${
                 timePeriod === 'all' ? 'btn-active' : ''
               }`}
               onClick={() => setTimePeriod('all')}
             >
-              All Time
+              All
             </button>
           </div>
         </div>
 
         {!loading && todos.length > 0 && (
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="stat bg-base-100 shadow-sm rounded-box">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="stat bg-base-100 shadow-sm rounded-box p-3 sm:p-4">
               <div className="stat-figure text-primary">
-                <Calendar className="w-8 h-8" />
+                <Calendar className="w-6 h-6 sm:w-8 sm:h-8" />
               </div>
-              <div className="stat-title">Most Productive Day</div>
-              <div className="stat-value text-primary">Tuesday</div>
-              <div className="stat-desc">You complete 35% more tasks</div>
+              <div className="stat-title text-xs sm:text-sm">
+                Most Productive Day
+              </div>
+              <div className="stat-value text-primary text-xl sm:text-2xl md:text-3xl">
+                Tuesday
+              </div>
+              <div className="stat-desc text-xs">
+                You complete 35% more tasks
+              </div>
             </div>
 
-            <div className="stat bg-base-100 shadow-sm rounded-box">
+            <div className="stat bg-base-100 shadow-sm rounded-box p-3 sm:p-4">
               <div className="stat-figure text-secondary">
-                <Clock className="w-8 h-8" />
+                <Clock className="w-6 h-6 sm:w-8 sm:h-8" />
               </div>
-              <div className="stat-title">Average Completion Time</div>
-              <div className="stat-value text-secondary">2.5 days</div>
-              <div className="stat-desc">From creation to completion</div>
+              <div className="stat-title text-xs sm:text-sm">
+                Average Completion Time
+              </div>
+              <div className="stat-value text-secondary text-xl sm:text-2xl md:text-3xl">
+                2.5 days
+              </div>
+              <div className="stat-desc text-xs">
+                From creation to completion
+              </div>
             </div>
 
-            <div className="stat bg-base-100 shadow-sm rounded-box">
+            <div className="stat bg-base-100 shadow-sm rounded-box p-3 sm:p-4 sm:col-span-2 lg:col-span-1">
               <div className="stat-figure text-accent">
-                <TrendingUp className="w-8 h-8" />
+                <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8" />
               </div>
-              <div className="stat-title">Focus Trend</div>
-              <div className="stat-value text-accent">↗︎ 14%</div>
-              <div className="stat-desc">More important tasks completed</div>
+              <div className="stat-title text-xs sm:text-sm">Focus Trend</div>
+              <div className="stat-value text-accent text-xl sm:text-2xl md:text-3xl">
+                ↗︎ 14%
+              </div>
+              <div className="stat-desc text-xs">
+                More important tasks completed
+              </div>
             </div>
           </div>
         )}
 
-        <div className="bg-base-100 rounded-box shadow-sm p-4">
+        <div className="bg-base-100 rounded-box shadow-sm p-3 sm:p-4">
           <UserDashboard todos={todos} loading={loading} />
         </div>
 
         <div className="card bg-base-200">
-          <div className="card-body">
-            <h2 className="card-title">Want to improve your productivity?</h2>
-            <p>
+          <div className="card-body p-4 sm:p-6">
+            <h2 className="card-title text-lg sm:text-xl">
+              Want to improve your productivity?
+            </h2>
+            <p className="text-sm sm:text-base">
               Learn more about the Eisenhower Matrix method and how it can help
               you prioritize effectively.
             </p>
-            <div className="card-actions justify-end">
-              <Link href="/matrix" className="btn btn-primary">
+            <div className="card-actions justify-end mt-2">
+              <Link href="/matrix" className="btn btn-sm sm:btn-md btn-primary">
                 Learn More
-                <ArrowRight size={16} />
+                <ArrowRight size={14} className="sm:w-4 sm:h-4" />
               </Link>
             </div>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Edit,
   Trash2,
@@ -46,6 +46,8 @@ interface ITodoCardProps {
   isPreview?: boolean;
   isLoading?: boolean;
   isSubtaskView?: boolean;
+  hideCategory?: boolean;
+  hidePriority?: boolean;
 }
 
 export const TodoCard = ({
@@ -55,6 +57,8 @@ export const TodoCard = ({
   isPreview = false,
   isLoading = false,
   isSubtaskView = false,
+  hideCategory = false,
+  hidePriority = false,
 }: ITodoCardProps) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,6 +68,7 @@ export const TodoCard = ({
   const [editedDesc, setEditedDesc] = useState(todo.desc);
   const [expanded, setExpanded] = useState(false);
   const [subtasks, setSubtasks] = useState<ITodo[]>([]);
+  const [isLoadingSubtasks, setIsLoadingSubtasks] = useState(false);
 
   const { addToast } = useToastStore();
 
@@ -76,6 +81,31 @@ export const TodoCard = ({
   const hasUncompletedDependencies = hasDependencies
     ? extendedTodo.dependsOn?.some((d) => !d.dependsOnTodo?.completed)
     : false;
+
+  // Define fetchSubtasks as a useCallback to prevent it from being recreated on every render
+  const fetchSubtasks = useCallback(async () => {
+    if (isPreview) return;
+
+    setIsLoadingSubtasks(true);
+    try {
+      const response = await fetch(`/api/todos/${todo.id}/subtasks`);
+      if (!response.ok) throw new Error('Failed to fetch subtasks');
+
+      const data = await response.json();
+      setSubtasks(data);
+    } catch (error) {
+      console.error('Error fetching subtasks:', error);
+    } finally {
+      setIsLoadingSubtasks(false);
+    }
+  }, [todo.id, isPreview]);
+
+  // Fetch subtasks when component mounts
+  useEffect(() => {
+    if (!isSubtaskView && isParentTask) {
+      fetchSubtasks();
+    }
+  }, [isSubtaskView, isParentTask, fetchSubtasks]);
 
   const handleCompletionToggle = () => {
     if (isPreview || !onUpdate || isLoading) return;
@@ -207,8 +237,9 @@ export const TodoCard = ({
           isLoading ? 'opacity-70' : ''
         }`}
       >
-        <div className="card-body p-4">
-          <div className="flex items-start gap-3">
+        <div className="card-body p-3 sm:p-4">
+          <div className="flex items-start gap-2">
+            {/* Expand/Collapse button */}
             {isParentTask && (
               <button
                 type="button"
@@ -224,10 +255,11 @@ export const TodoCard = ({
               </button>
             )}
 
+            {/* Completion toggle button */}
             <button
               type="button"
               onClick={handleCompletionToggle}
-              className="p-1 hover:bg-base-200 rounded-md transition-colors"
+              className="p-1 hover:bg-base-200 rounded-md transition-colors flex-shrink-0 self-start mt-0.5"
               disabled={isPreview || isLoading}
               aria-label={
                 todo.completed ? 'Mark as incomplete' : 'Mark as complete'
@@ -240,14 +272,16 @@ export const TodoCard = ({
               )}
             </button>
 
-            <div className="flex-1">
+            {/* Main content container */}
+            <div className="flex-1 min-w-0">
+              {/* Inline editing */}
               {isInlineEditing ? (
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
                     value={editedDesc}
                     onChange={(e) => setEditedDesc(e.target.value)}
-                    className="input input-bordered w-full"
+                    className="input input-bordered input-sm sm:input-md w-full"
                     autoFocus
                     disabled={isLoading}
                     onKeyDown={(e) => {
@@ -257,40 +291,42 @@ export const TodoCard = ({
                   />
                   <button
                     onClick={handleSaveInlineEdit}
-                    className="btn btn-circle btn-sm btn-success"
+                    className="btn btn-circle btn-xs sm:btn-sm btn-success"
                     disabled={isLoading || !editedDesc.trim()}
                   >
-                    <Save size={14} />
+                    <Save size={12} />
                   </button>
                   <button
                     onClick={handleCancelInlineEdit}
-                    className="btn btn-circle btn-sm btn-ghost"
+                    className="btn btn-circle btn-xs sm:btn-sm btn-ghost"
                     disabled={isLoading}
                   >
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </div>
               ) : (
                 <div>
+                  {/* Task description */}
                   <p
-                    className={`text-base-content ${
+                    className={`text-sm sm:text-base text-base-content ${
                       todo.completed ? 'line-through opacity-50' : ''
-                    }`}
+                    } break-words leading-normal pt-0.5`}
                   >
                     {todo.desc}
                   </p>
 
+                  {/* Badges */}
                   <div className="flex flex-wrap gap-1 mt-1">
                     {todo.isRecurring && (
-                      <div className="badge badge-sm gap-1 badge-outline">
-                        <RepeatIcon size={12} />
+                      <div className="badge badge-xs sm:badge-sm gap-1 badge-outline">
+                        <RepeatIcon size={10} />
                         <span className="text-xs">{recurrencePattern}</span>
                       </div>
                     )}
 
                     {hasSubtasks && (
-                      <div className="badge badge-sm gap-1 badge-outline">
-                        <ListTodo size={12} />
+                      <div className="badge badge-xs sm:badge-sm gap-1 badge-outline">
+                        <ListTodo size={10} />
                         <span className="text-xs">
                           {completedSubtaskCount}/{subtaskCount}
                         </span>
@@ -299,13 +335,13 @@ export const TodoCard = ({
 
                     {hasDependencies && (
                       <div
-                        className={`badge badge-sm gap-1 ${
+                        className={`badge badge-xs sm:badge-sm gap-1 ${
                           hasUncompletedDependencies
                             ? 'badge-warning'
                             : 'badge-outline'
                         }`}
                       >
-                        <Link size={12} />
+                        <Link size={10} />
                         <span className="text-xs">Dependencies</span>
                       </div>
                     )}
@@ -313,67 +349,83 @@ export const TodoCard = ({
                 </div>
               )}
 
-              <div className="flex flex-col gap-2 mt-2">
-                <div
-                  className={`badge ${
-                    CATEGORY_STYLES[todo.category]
-                  } min-w-[100px] justify-center`}
-                >
-                  {CATEGORIES[todo.category]}
+              {/* Category and Priority - Now conditionally rendered */}
+              {(!hideCategory || !hidePriority) && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {!hideCategory && (
+                    <div
+                      className={`badge ${
+                        CATEGORY_STYLES[todo.category]
+                      } badge-sm sm:badge-md justify-center`}
+                    >
+                      {CATEGORIES[todo.category]}
+                    </div>
+                  )}
+                  {!hidePriority && (
+                    <div
+                      className={`badge ${
+                        PRIORITY_STYLES[todo.priority]
+                      } badge-sm sm:badge-md justify-center`}
+                    >
+                      {PRIORITIES[todo.priority]}
+                    </div>
+                  )}
                 </div>
-                <div
-                  className={`badge ${
-                    PRIORITY_STYLES[todo.priority]
-                  } min-w-[200px] justify-center text-sm`}
-                >
-                  {PRIORITIES[todo.priority]}
-                </div>
-              </div>
+              )}
             </div>
 
+            {/* Action buttons */}
             {!isPreview && !isInlineEditing && (
-              <div className="flex gap-1">
+              <div
+                className={`flex ${
+                  isSubtaskView ? 'flex-row' : 'flex-col sm:flex-row'
+                } gap-1`}
+              >
                 <button
                   onClick={() => setIsInlineEditing(true)}
-                  className="p-1 rounded-md hover:bg-base-200 transition-colors tooltip tooltip-left"
-                  data-tip="Quick edit title"
+                  className="btn btn-xs btn-ghost btn-square sm:p-1 sm:rounded-md hover:bg-base-200 transition-colors"
                   disabled={isLoading || todo.completed}
                   aria-label="Quick edit title"
                 >
-                  <Edit size={16} />
+                  <Edit size={14} />
                 </button>
 
                 <button
                   onClick={openEditModal}
-                  className="p-1 rounded-md hover:bg-base-200 transition-colors tooltip tooltip-left"
-                  data-tip="Edit all details"
+                  className="btn btn-xs btn-ghost btn-square sm:p-1 sm:rounded-md hover:bg-base-200 transition-colors"
                   disabled={isLoading}
                   aria-label="Edit details"
                 >
-                  <Edit size={16} className="text-primary" />
+                  <Edit size={14} className="text-primary" />
                 </button>
 
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="p-1 rounded-md hover:bg-base-200 transition-colors text-error tooltip tooltip-left"
-                  data-tip="Delete task"
+                  className="btn btn-xs btn-ghost btn-square sm:p-1 sm:rounded-md hover:bg-base-200 transition-colors text-error"
                   disabled={isLoading}
                   aria-label="Delete todo"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             )}
           </div>
 
+          {/* Subtasks and Dependencies */}
           {expanded && isParentTask && !isSubtaskView && (
-            <div className="mt-3 pl-8">
+            <div className="mt-3 pl-4 sm:pl-8">
               <div key={`subtasks-${todo.id}`}>
-                <SubtaskManager
-                  todoId={todo.id}
-                  isCompleted={todo.completed}
-                  onSubtasksChange={handleSubtasksChange}
-                />
+                {isLoadingSubtasks ? (
+                  <div className="flex justify-center py-2">
+                    <div className="loading loading-spinner loading-sm"></div>
+                  </div>
+                ) : (
+                  <SubtaskManager
+                    todoId={todo.id}
+                    isCompleted={todo.completed}
+                    onSubtasksChange={handleSubtasksChange}
+                  />
+                )}
               </div>
 
               <div key={`dependencies-${todo.id}`}>
@@ -387,6 +439,7 @@ export const TodoCard = ({
         </div>
       </div>
 
+      {/* Edit Modal - Making this responsive too */}
       <Modal modalOpen={isEditModalOpen} setModalOpen={setIsEditModalOpen}>
         <form onSubmit={handleEditSubmit} className="space-y-4">
           <h3 className="font-bold text-lg text-base-content">Edit Task</h3>
@@ -400,7 +453,7 @@ export const TodoCard = ({
               onChange={(e) =>
                 setEditTodoData({ ...editTodoData, desc: e.target.value })
               }
-              className="input input-bordered w-full"
+              className="input input-bordered input-sm sm:input-md w-full"
               placeholder="Task description"
               disabled={isSubmitting}
               autoFocus
@@ -411,7 +464,7 @@ export const TodoCard = ({
             <label className="label">
               <span className="label-text">Category</span>
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               {Object.entries(CATEGORIES).map(([key, value]) => (
                 <div
                   key={key}
@@ -419,7 +472,7 @@ export const TodoCard = ({
                     editTodoData.category === key
                       ? 'ring-2 ring-primary'
                       : 'opacity-70 hover:opacity-100'
-                  } px-3 py-2 rounded-full transition-all text-sm`}
+                  } px-2 py-1 sm:px-3 sm:py-2 rounded-full transition-all text-xs sm:text-sm`}
                   onClick={() =>
                     !isSubmitting &&
                     setEditTodoData({
@@ -438,7 +491,7 @@ export const TodoCard = ({
             <label className="label">
               <span className="label-text">Priority</span>
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {Object.entries(PRIORITIES).map(([key, value]) => (
                 <div
                   key={key}
@@ -456,11 +509,11 @@ export const TodoCard = ({
                   }
                 >
                   <div
-                    className={`badge ${PRIORITY_STYLES[key]} badge-sm p-2.5`}
+                    className={`badge ${PRIORITY_STYLES[key]} badge-xs sm:badge-sm p-1.5 sm:p-2.5`}
                   >
                     {value}
                   </div>
-                  <div className="text-xs mt-2 text-base-content/70">
+                  <div className="text-xs mt-1 sm:mt-2 text-base-content/70">
                     {key === 'IMPORTANT_URGENT'
                       ? 'Do immediately'
                       : key === 'IMPORTANT_NOT_URGENT'
@@ -491,7 +544,7 @@ export const TodoCard = ({
             <label className="label cursor-pointer justify-start gap-2">
               <input
                 type="checkbox"
-                className="checkbox"
+                className="checkbox checkbox-sm"
                 checked={editTodoData.completed}
                 onChange={(e) =>
                   setEditTodoData({
@@ -509,14 +562,14 @@ export const TodoCard = ({
             <button
               type="button"
               onClick={() => setIsEditModalOpen(false)}
-              className="btn btn-ghost"
+              className="btn btn-ghost btn-sm sm:btn-md"
               disabled={isSubmitting}
             >
               Cancel
             </button>
             <LoadingButton
               type="submit"
-              className="btn-primary"
+              className="btn-primary btn-sm sm:btn-md"
               isLoading={isSubmitting}
               loadingText="Saving..."
             >

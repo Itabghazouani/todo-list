@@ -53,7 +53,7 @@ const Modal = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
       aria-modal="true"
       role="dialog"
       aria-labelledby={title ? 'modal-title' : undefined}
@@ -64,23 +64,26 @@ const Modal = ({
         onClick={handleBackdropClick}
       />
 
-      {/* Modal container - center positioned but allows scrolling */}
-      <div className="relative z-50 my-8 mx-auto w-full max-w-md">
+      {/* Modal container - adjusts size based on screen */}
+      <div className="relative z-50 w-full max-w-md mx-auto my-4 sm:my-8">
         {/* Modal content */}
         <div
           ref={modalRef}
-          className="bg-base-100 rounded-lg shadow-xl w-full transform transition-all animate-in slide-in-from-bottom-8 duration-300"
+          className="bg-base-100 rounded-lg shadow-xl w-full transform transition-all animate-in slide-in-from-bottom-8 duration-300 max-h-[90vh] flex flex-col"
         >
           {/* Optional title and close button */}
           {(title || closeOnOutsideClick) && (
-            <div className="flex items-center justify-between p-4 border-b border-base-300">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300">
               {title && (
-                <h3 id="modal-title" className="text-lg font-medium">
+                <h3
+                  id="modal-title"
+                  className="text-base sm:text-lg font-medium truncate pr-2"
+                >
                   {title}
                 </h3>
               )}
               <button
-                className="p-1 rounded-full hover:bg-base-200 transition-colors"
+                className="p-2 rounded-full hover:bg-base-200 transition-colors flex-shrink-0"
                 onClick={() => setModalOpen(false)}
                 aria-label="Close modal"
               >
@@ -89,8 +92,8 @@ const Modal = ({
             </div>
           )}
 
-          {/* Modal body */}
-          <div className="p-6">{children}</div>
+          {/* Modal body - with overflow scrolling */}
+          <div className="p-4 sm:p-6 overflow-y-auto">{children}</div>
         </div>
       </div>
     </div>,

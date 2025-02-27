@@ -141,22 +141,24 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-base-100">
       <Toast />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="card bg-base-200 shadow-lg mb-8 p-6">
-            <div className="flex flex-col gap-4">
-              <h1 className="text-3xl font-bold text-base-content">My Todos</h1>
-              <p className="text-base-content/70">
+          <div className="card bg-base-200 shadow-lg mb-4 sm:mb-8 p-4 sm:p-6">
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-base-content">
+                My Todos
+              </h1>
+              <p className="text-sm sm:text-base text-base-content/70">
                 Organize your tasks using the Eisenhower Matrix
               </p>
               <AddTodo onTodoAdded={handleTodoAdded} />
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-            <div className="join">
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-4 gap-3">
+            <div className="join w-full sm:w-auto">
               <button
-                className={`btn join-item gap-2 ${
+                className={`btn join-item gap-2 flex-1 sm:flex-none ${
                   viewMode === 'list' ? 'btn-active' : ''
                 }`}
                 onClick={() => setViewMode('list')}
@@ -165,7 +167,7 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
                 List View
               </button>
               <button
-                className={`btn join-item gap-2 ${
+                className={`btn join-item gap-2 flex-1 sm:flex-none ${
                   viewMode === 'matrix' ? 'btn-active' : ''
                 }`}
                 onClick={() => setViewMode('matrix')}
@@ -182,14 +184,15 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
               completedCount={completedCount}
               totalCount={totalCount}
               recurringCount={recurringCount}
+              className="w-full sm:w-auto"
             />
           </div>
 
           <div className="card bg-base-200 shadow-lg">
-            <div className="card-body">
+            <div className="card-body p-3 sm:p-6">
               {todos.length === 0 ? (
-                <div className="text-center py-6">
-                  <p className="text-lg opacity-70">
+                <div className="text-center py-4 sm:py-6">
+                  <p className="text-base sm:text-lg opacity-70">
                     No todos yet. Add some tasks to get started!
                   </p>
                 </div>

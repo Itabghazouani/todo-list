@@ -104,17 +104,17 @@ const RecurringTaskSettings = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="form-control">
         <label className="cursor-pointer label justify-start gap-2">
           <input
             type="checkbox"
             checked={localIsRecurring}
             onChange={toggleRecurring}
-            className="checkbox"
+            className="checkbox checkbox-sm md:checkbox-md"
             disabled={disabled}
           />
-          <span className="label-text flex items-center gap-1">
+          <span className="label-text text-sm md:text-base flex items-center gap-1">
             <RepeatIcon size={16} />
             Recurring task
           </span>
@@ -122,18 +122,20 @@ const RecurringTaskSettings = ({
       </div>
 
       {localIsRecurring && (
-        <>
+        <div className="space-y-4">
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Repeat pattern</span>
+            <label className="label pb-1">
+              <span className="label-text text-sm md:text-base font-medium">
+                Repeat pattern
+              </span>
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-4">
               {Object.values(RecurrenceType).map((type) => (
                 <div
                   key={type}
-                  className={`cursor-pointer ${disabled ? 'opacity-50' : ''} ${
-                    RECURRENCE_TYPE_STYLES[type]
-                  } ${
+                  className={`cursor-pointer text-xs sm:text-sm ${
+                    disabled ? 'opacity-50' : ''
+                  } ${RECURRENCE_TYPE_STYLES[type]} ${
                     localType === type
                       ? 'ring-2 ring-primary'
                       : 'opacity-70 hover:opacity-100'
@@ -147,8 +149,10 @@ const RecurringTaskSettings = ({
           </div>
 
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Repeat every</span>
+            <label className="label pb-1">
+              <span className="label-text text-sm md:text-base font-medium">
+                Repeat every
+              </span>
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -163,10 +167,10 @@ const RecurringTaskSettings = ({
                     updateRecurrence();
                   }
                 }}
-                className="input input-bordered w-20"
+                className="input input-bordered input-sm md:input-md w-16 md:w-20"
                 disabled={disabled || !localType}
               />
-              <span className="text-sm">
+              <span className="text-xs md:text-sm">
                 {localType === RecurrenceType.DAILY
                   ? localInterval === 1
                     ? 'day'
@@ -189,13 +193,15 @@ const RecurringTaskSettings = ({
           </div>
 
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">End date (optional)</span>
+            <label className="label pb-1">
+              <span className="label-text text-sm md:text-base font-medium">
+                End date (optional)
+              </span>
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <div className="relative flex-grow">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/70">
-                  <Calendar size={16} />
+                  <Calendar size={14} className="md:w-4 md:h-4" />
                 </span>
                 <input
                   type="date"
@@ -205,14 +211,14 @@ const RecurringTaskSettings = ({
                     setLocalEndDate(e.target.value);
                     setTimeout(updateRecurrence, 0);
                   }}
-                  className="input input-bordered pl-10 w-full"
+                  className="input input-bordered input-sm md:input-md pl-10 w-full"
                   disabled={disabled || !localType}
                 />
               </div>
               {localEndDate && (
                 <button
                   type="button"
-                  className="btn btn-sm btn-ghost"
+                  className="btn btn-sm btn-ghost self-start"
                   onClick={() => {
                     setLocalEndDate('');
                     setTimeout(updateRecurrence, 0);
@@ -226,15 +232,15 @@ const RecurringTaskSettings = ({
           </div>
 
           <div className="bg-base-300 p-3 rounded-md">
-            <div className="text-sm font-medium">Summary:</div>
-            <div className="text-sm text-base-content/70">
+            <div className="text-xs md:text-sm font-medium">Summary:</div>
+            <div className="text-xs md:text-sm text-base-content/70 mt-1">
               {formatRecurrencePattern(localType, localInterval)}
               {localEndDate
                 ? `, until ${new Date(localEndDate).toLocaleDateString()}`
                 : ''}
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

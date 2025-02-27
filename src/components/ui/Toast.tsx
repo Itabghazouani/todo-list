@@ -46,22 +46,25 @@ const Toast = () => {
   };
 
   return (
-    <div className="toast toast-top toast-end z-50">
+    <div className="toast toast-top toast-end z-50 p-2 max-w-[90vw] sm:max-w-md md:max-w-lg">
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`alert ${getAlertClass(toast.type)} shadow-lg mb-2`}
+          className={`alert ${getAlertClass(
+            toast.type,
+          )} shadow-lg mb-2 text-sm sm:text-base`}
         >
-          <div className="flex justify-between w-full">
-            <div className="flex items-center">
+          <div className="flex justify-between w-full items-center">
+            <div className="flex items-center gap-2 break-words">
               {getIcon(toast.type)}
-              <span>{toast.message}</span>
+              <span className="line-clamp-3">{toast.message}</span>
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="btn btn-ghost btn-xs"
+              className="btn btn-ghost btn-xs ml-2 flex-shrink-0"
+              aria-label="Close"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>

@@ -7,10 +7,11 @@ import { ConfirmDialog, LoadingButton } from '../ui';
 interface IClearTodosProps {
   onClearCompleted: () => Promise<void>;
   onClearAll: () => Promise<void>;
-  onClearNonRecurring?: () => Promise<void>; // New prop for clearing non-recurring todos
+  onClearNonRecurring?: () => Promise<void>;
   completedCount: number;
   totalCount: number;
-  recurringCount?: number; // Optional count of recurring tasks
+  recurringCount?: number;
+  className?: string; // Add className prop
 }
 
 const ClearTodos = ({
@@ -20,6 +21,7 @@ const ClearTodos = ({
   completedCount,
   totalCount,
   recurringCount = 0,
+  className = '', // Default to empty string
 }: IClearTodosProps) => {
   const [isCompletedLoading, setIsCompletedLoading] = useState(false);
   const [isAllLoading, setIsAllLoading] = useState(false);
@@ -61,7 +63,7 @@ const ClearTodos = ({
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className={`flex flex-wrap gap-2 ${className}`}>
         <LoadingButton
           className="btn-outline btn-sm gap-2"
           onClick={handleClearCompleted}
@@ -70,7 +72,7 @@ const ClearTodos = ({
           loadingText="Clearing..."
         >
           <CheckSquare size={16} />
-          Clear Completed ({completedCount})
+          <span>Clear Completed ({completedCount})</span>
         </LoadingButton>
 
         {onClearNonRecurring && (
@@ -82,7 +84,7 @@ const ClearTodos = ({
             loadingText="Clearing..."
           >
             <RepeatIcon size={16} />
-            Keep Only Recurring
+            <span>Keep Only Recurring</span>
           </LoadingButton>
         )}
 
@@ -94,7 +96,7 @@ const ClearTodos = ({
           loadingText="Clearing..."
         >
           <Trash2 size={16} />
-          Clear All Todos
+          <span>Clear All Todos</span>
         </LoadingButton>
       </div>
 

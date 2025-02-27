@@ -127,15 +127,17 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-4">
+          <div className="card-body p-3 sm:p-4">
             <div className="flex justify-between items-center">
-              <h3 className="card-title text-lg">Total Tasks</h3>
-              <div className="badge badge-primary badge-lg">{todos.length}</div>
+              <h3 className="card-title text-base sm:text-lg">Total Tasks</h3>
+              <div className="badge badge-primary badge-md sm:badge-lg">
+                {todos.length}
+              </div>
             </div>
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-between mt-2 text-xs sm:text-sm">
               <div className="text-base-content/70">
                 Active: {todos.length - completedTodos.length}
               </div>
@@ -147,11 +149,13 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
         </div>
 
         <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-4">
+          <div className="card-body p-3 sm:p-4">
             <div className="flex justify-between items-center">
-              <h3 className="card-title text-lg">Completion Rate</h3>
+              <h3 className="card-title text-base sm:text-lg">
+                Completion Rate
+              </h3>
               <div
-                className={`badge badge-lg ${
+                className={`badge badge-md sm:badge-lg ${
                   completionRate > 50 ? 'badge-success' : 'badge-warning'
                 }`}
               >
@@ -169,15 +173,17 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
         </div>
 
         <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-4">
+          <div className="card-body p-3 sm:p-4">
             <div className="flex justify-between items-center">
-              <h3 className="card-title text-lg">Priority Focus</h3>
-              <div className="badge badge-accent badge-lg">
+              <h3 className="card-title text-base sm:text-lg">
+                Priority Focus
+              </h3>
+              <div className="badge badge-accent badge-md sm:badge-lg text-xs">
                 {priorityData.sort((a, b) => b.value - a.value)[0]?.name ||
                   'None'}
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-2 text-xs sm:text-sm">
               <TrendingUp className="w-4 h-4 text-accent" />
               <span className="text-base-content/70">
                 Most common priority quadrant
@@ -187,10 +193,12 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
         </div>
 
         <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-4">
+          <div className="card-body p-3 sm:p-4">
             <div className="flex justify-between items-center">
-              <h3 className="card-title text-lg">Productivity Score</h3>
-              <div className="badge badge-info badge-lg">
+              <h3 className="card-title text-base sm:text-lg">
+                Productivity Score
+              </h3>
+              <div className="badge badge-info badge-md sm:badge-lg">
                 {Math.min(
                   100,
                   Math.round(
@@ -205,7 +213,7 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-2 text-xs sm:text-sm">
               <Award className="w-4 h-4 text-info" />
               <span className="text-base-content/70">
                 Based on completion & priorities
@@ -215,38 +223,44 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
         </div>
       </div>
 
-      <div className="tabs tabs-boxed bg-base-200 p-1">
+      <div className="tabs tabs-boxed bg-base-200 p-1 overflow-x-auto flex-nowrap">
         <button
-          className={`tab ${activeTab === 'overview' ? 'tab-active' : ''}`}
+          className={`tab text-xs sm:text-sm ${
+            activeTab === 'overview' ? 'tab-active' : ''
+          }`}
           onClick={() => setActiveTab('overview')}
         >
-          <PieChartIcon className="w-4 h-4 mr-2" />
+          <PieChartIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
           Overview
         </button>
         <button
-          className={`tab ${activeTab === 'completion' ? 'tab-active' : ''}`}
+          className={`tab text-xs sm:text-sm ${
+            activeTab === 'completion' ? 'tab-active' : ''
+          }`}
           onClick={() => setActiveTab('completion')}
         >
-          <CheckCircle className="w-4 h-4 mr-2" />
-          Completion Analysis
+          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+          Completion
         </button>
         <button
-          className={`tab ${activeTab === 'trends' ? 'tab-active' : ''}`}
+          className={`tab text-xs sm:text-sm ${
+            activeTab === 'trends' ? 'tab-active' : ''
+          }`}
           onClick={() => setActiveTab('trends')}
         >
-          <Activity className="w-4 h-4 mr-2" />
+          <Activity className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
           Trends
         </button>
       </div>
 
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div className="card bg-base-100 shadow-sm">
-            <div className="card-body">
-              <h3 className="card-title text-lg">
+            <div className="card-body p-3 sm:p-6">
+              <h3 className="card-title text-base sm:text-lg">
                 Task Distribution by Priority
               </h3>
-              <div className="h-64">
+              <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -254,7 +268,7 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      outerRadius={80}
+                      outerRadius={70}
                       fill="#8884d8"
                       dataKey="value"
                       label={({ name, percent }) =>
@@ -278,9 +292,12 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {priorityData.map((entry) => (
-                  <div key={entry.priority} className="flex items-center gap-2">
+                  <div
+                    key={entry.priority}
+                    className="flex items-center gap-1 sm:gap-2"
+                  >
                     <div
-                      className="w-3 h-3 rounded-full"
+                      className="w-2 h-2 sm:w-3 sm:h-3 rounded-full"
                       style={{
                         backgroundColor:
                           PRIORITY_COLORS[
@@ -288,7 +305,7 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
                           ],
                       }}
                     ></div>
-                    <span className="text-xs">
+                    <span className="text-xs truncate">
                       {entry.name}: {entry.value}
                     </span>
                   </div>
@@ -298,19 +315,21 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
           </div>
 
           <div className="card bg-base-100 shadow-sm">
-            <div className="card-body">
-              <h3 className="card-title text-lg">Completion by Priority</h3>
-              <div className="h-64">
+            <div className="card-body p-3 sm:p-6">
+              <h3 className="card-title text-base sm:text-lg">
+                Completion by Priority
+              </h3>
+              <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={completionByPriority}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 15, right: 10, left: 10, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '10px' }} />
                     <Bar
                       dataKey="completion"
                       name="Completion Rate (%)"
@@ -326,22 +345,33 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
       )}
 
       {activeTab === 'completion' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div className="card bg-base-100 shadow-sm">
-            <div className="card-body">
-              <h3 className="card-title text-lg">Completion by Category</h3>
-              <div className="h-72">
+            <div className="card-body p-3 sm:p-6">
+              <h3 className="card-title text-base sm:text-lg">
+                Completion by Category
+              </h3>
+              <div className="h-64 sm:h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={completionByCategory}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 15, right: 10, left: 10, bottom: 5 }}
                     layout="vertical"
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" domain={[0, 'dataMax']} />
-                    <YAxis dataKey="name" type="category" width={100} />
+                    <XAxis
+                      type="number"
+                      domain={[0, 'dataMax']}
+                      tick={{ fontSize: 10 }}
+                    />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      width={80}
+                      tick={{ fontSize: 10 }}
+                    />
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '10px' }} />
                     <Bar
                       dataKey="total"
                       name="Total Tasks"
@@ -361,12 +391,16 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
           </div>
 
           <div className="card bg-base-100 shadow-sm">
-            <div className="card-body">
-              <h3 className="card-title text-lg">Task Status Analysis</h3>
-              <div className="stats stats-vertical shadow w-full">
-                <div className="stat">
-                  <div className="stat-title">High Priority Completion</div>
-                  <div className="stat-value text-primary">
+            <div className="card-body p-3 sm:p-6">
+              <h3 className="card-title text-base sm:text-lg">
+                Task Status Analysis
+              </h3>
+              <div className="stats stats-vertical shadow w-full text-xs sm:text-sm">
+                <div className="stat p-2 sm:p-4">
+                  <div className="stat-title text-xs sm:text-sm">
+                    High Priority Completion
+                  </div>
+                  <div className="stat-value text-primary text-xl sm:text-2xl">
                     {Math.round(
                       (todos.filter(
                         (t) => t.priority === 'IMPORTANT_URGENT' && t.completed,
@@ -380,12 +414,16 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
                     )}
                     %
                   </div>
-                  <div className="stat-desc">Important + Urgent tasks</div>
+                  <div className="stat-desc text-xs">
+                    Important + Urgent tasks
+                  </div>
                 </div>
 
-                <div className="stat">
-                  <div className="stat-title">Strategic Work</div>
-                  <div className="stat-value text-secondary">
+                <div className="stat p-2 sm:p-4">
+                  <div className="stat-title text-xs sm:text-sm">
+                    Strategic Work
+                  </div>
+                  <div className="stat-value text-secondary text-xl sm:text-2xl">
                     {Math.round(
                       (todos.filter(
                         (t) => t.priority === 'IMPORTANT_NOT_URGENT',
@@ -395,18 +433,24 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
                     )}
                     %
                   </div>
-                  <div className="stat-desc">Important + Not Urgent tasks</div>
+                  <div className="stat-desc text-xs">
+                    Important + Not Urgent tasks
+                  </div>
                 </div>
 
-                <div className="stat">
-                  <div className="stat-title">Potential Delegation</div>
-                  <div className="stat-value">
+                <div className="stat p-2 sm:p-4">
+                  <div className="stat-title text-xs sm:text-sm">
+                    Potential Delegation
+                  </div>
+                  <div className="stat-value text-xl sm:text-2xl">
                     {
                       todos.filter((t) => t.priority === 'NOT_IMPORTANT_URGENT')
                         .length
                     }
                   </div>
-                  <div className="stat-desc">Tasks you might delegate</div>
+                  <div className="stat-desc text-xs">
+                    Tasks you might delegate
+                  </div>
                 </div>
               </div>
             </div>
@@ -415,12 +459,14 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
       )}
 
       {activeTab === 'trends' && (
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <div className="card bg-base-100 shadow-sm">
-            <div className="card-body">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="card-title text-lg">Weekly Activity</h3>
-                <div className="join">
+            <div className="card-body p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 gap-2 sm:gap-0">
+                <h3 className="card-title text-base sm:text-lg">
+                  Weekly Activity
+                </h3>
+                <div className="join self-start sm:self-auto">
                   <button
                     className={`join-item btn btn-xs ${
                       timeRange === 'week' ? 'btn-active' : ''
@@ -448,59 +494,61 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
                 </div>
               </div>
 
-              <div className="h-72">
+              <div className="h-56 sm:h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={trendData}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis />
+                    <XAxis dataKey="day" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '10px' }} />
                     <Line
                       type="monotone"
                       dataKey="tasks"
                       name="Total Tasks"
                       stroke="#8884d8"
-                      activeDot={{ r: 8 }}
+                      activeDot={{ r: 6 }}
+                      strokeWidth={2}
                     />
                     <Line
                       type="monotone"
                       dataKey="completed"
                       name="Completed Tasks"
                       stroke="#82ca9d"
+                      strokeWidth={2}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
-                  <CheckCircle className="w-8 h-8 text-success" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-3 sm:mt-4">
+                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-base-200 rounded-lg">
+                  <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-success" />
                   <div>
-                    <div className="text-lg font-bold">24</div>
+                    <div className="text-base sm:text-lg font-bold">24</div>
                     <div className="text-xs text-base-content/70">
                       Tasks completed this week
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
-                  <XCircle className="w-8 h-8 text-error" />
+                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-base-200 rounded-lg">
+                  <XCircle className="w-6 h-6 sm:w-8 sm:h-8 text-error" />
                   <div>
-                    <div className="text-lg font-bold">5</div>
+                    <div className="text-base sm:text-lg font-bold">5</div>
                     <div className="text-xs text-base-content/70">
                       Overdue tasks
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
-                  <TrendingUp className="w-8 h-8 text-info" />
+                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-base-200 rounded-lg">
+                  <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-info" />
                   <div>
-                    <div className="text-lg font-bold">15%</div>
+                    <div className="text-base sm:text-lg font-bold">15%</div>
                     <div className="text-xs text-base-content/70">
                       Productivity increase
                     </div>
@@ -513,9 +561,11 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
       )}
 
       <div className="card bg-primary bg-opacity-10 text-primary-content shadow-sm">
-        <div className="card-body">
-          <h3 className="card-title text-primary">Productivity Insights</h3>
-          <div className="space-y-2">
+        <div className="card-body p-3 sm:p-6">
+          <h3 className="card-title text-primary text-base sm:text-lg">
+            Productivity Insights
+          </h3>
+          <div className="space-y-2 text-xs sm:text-sm">
             <p className="text-base-content/70">
               {completionRate > 70
                 ? "You're doing great at completing tasks! Keep up the good work."
@@ -528,7 +578,7 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
               ?.value ?? 0) >
               (priorityData.find((p) => p.priority === 'IMPORTANT_NOT_URGENT')
                 ?.value || 0) && (
-              <p>
+              <p className="text-base-content/80">
                 You have more urgent & important tasks than scheduled important
                 work. Try to plan ahead to reduce urgency.
               </p>
@@ -538,7 +588,7 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
               ?.value ?? 0) >
               (priorityData.find((p) => p.priority === 'IMPORTANT_NOT_URGENT')
                 ?.value || 0) && (
-              <p>
+              <p className="text-base-content/80">
                 You&apos;re spending more time on urgent but unimportant tasks
                 than strategic work. Consider delegating these tasks when
                 possible.

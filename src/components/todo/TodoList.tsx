@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { InfoIcon, Filter, XCircle } from 'lucide-react';
 import { ITodo, ITodoBase } from '@/types/todos';
 import { TodoCard } from './TodoCard';
@@ -15,7 +15,13 @@ interface ITodoListProps {
 }
 
 const TodoList = ({ todos, onUpdateTodo, onDeleteTodo }: ITodoListProps) => {
-  const [filteredTodos, setFilteredTodos] = useState<ITodo[]>(todos);
+  // Filter out subtasks from the main todos array first
+  const mainTodos = useMemo(
+    () => todos.filter((todo) => !todo.isSubtask),
+    [todos],
+  );
+
+  const [filteredTodos, setFilteredTodos] = useState<ITodo[]>(mainTodos);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
@@ -27,7 +33,7 @@ const TodoList = ({ todos, onUpdateTodo, onDeleteTodo }: ITodoListProps) => {
     searchTerm || categoryFilter || priorityFilter || !showCompleted;
 
   const applyFilters = useCallback(() => {
-    let result = [...todos];
+    let result = [...mainTodos]; // Use mainTodos instead of all todos
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -47,7 +53,7 @@ const TodoList = ({ todos, onUpdateTodo, onDeleteTodo }: ITodoListProps) => {
     }
 
     setFilteredTodos(result);
-  }, [todos, searchTerm, categoryFilter, priorityFilter, showCompleted]);
+  }, [mainTodos, searchTerm, categoryFilter, priorityFilter, showCompleted]);
 
   useEffect(() => {
     applyFilters();
@@ -125,22 +131,33 @@ const TodoList = ({ todos, onUpdateTodo, onDeleteTodo }: ITodoListProps) => {
     }
   };
 
+  // Update stats to use mainTodos instead of all todos
   const stats = (
-    <div className="stats shadow w-full mb-6">
-      <div className="stat">
-        <div className="stat-title">Total Tasks</div>
-        <div className="stat-value text-primary">{todos.length}</div>
-      </div>
-      <div className="stat">
-        <div className="stat-title">Completed</div>
-        <div className="stat-value text-success">
-          {todos.filter((todo) => todo.completed).length}
+    <div className="flex overflow-x-auto hide-scrollbar mb-6 w-full">
+      <div className="stats shadow w-full min-w-0 flex-shrink">
+        <div className="stat px-3 sm:px-6">
+          <div className="stat-title text-xs sm:text-sm whitespace-nowrap">
+            Total Tasks
+          </div>
+          <div className="stat-value text-primary text-xl sm:text-3xl">
+            {mainTodos.length}
+          </div>
         </div>
-      </div>
-      <div className="stat">
-        <div className="stat-title">Pending</div>
-        <div className="stat-value text-warning">
-          {todos.filter((todo) => !todo.completed).length}
+        <div className="stat px-3 sm:px-6">
+          <div className="stat-title text-xs sm:text-sm whitespace-nowrap">
+            Completed
+          </div>
+          <div className="stat-value text-success text-xl sm:text-3xl">
+            {mainTodos.filter((todo) => todo.completed).length}
+          </div>
+        </div>
+        <div className="stat px-3 sm:px-6">
+          <div className="stat-title text-xs sm:text-sm whitespace-nowrap">
+            Pending
+          </div>
+          <div className="stat-value text-warning text-xl sm:text-3xl">
+            {mainTodos.filter((todo) => !todo.completed).length}
+          </div>
         </div>
       </div>
     </div>
@@ -162,7 +179,7 @@ const TodoList = ({ todos, onUpdateTodo, onDeleteTodo }: ITodoListProps) => {
       />
 
       {hasActiveFilters && (
-        <div className="flex items-center justify-between mb-4 mt-2">
+        <div className="flex flex-wrap items-center justify-between mb-4 mt-2 gap-2">
           <div className="badge badge-outline gap-1">
             <Filter size={14} />
             <span>Filters applied</span>
@@ -179,7 +196,10 @@ const TodoList = ({ todos, onUpdateTodo, onDeleteTodo }: ITodoListProps) => {
 
       <div className="divide-y divide-base-300">
         {filteredTodos.map((todo) => (
-          <div key={todo.id} className="py-4 first:pt-0 last:pb-0 relative">
+          <div
+            key={todo.id}
+            className="py-3 sm:py-4 first:pt-0 last:pb-0 relative"
+          >
             {isLoading[todo.id] && (
               <div className="absolute inset-0 bg-base-200 bg-opacity-50 flex items-center justify-center z-10">
                 <LoadingSpinner size={24} />
@@ -196,10 +216,10 @@ const TodoList = ({ todos, onUpdateTodo, onDeleteTodo }: ITodoListProps) => {
       </div>
 
       {filteredTodos.length === 0 && (
-        <div className="alert alert-info">
-          <InfoIcon className="stroke-current shrink-0 w-6 h-6" />
+        <div className="alert alert-info flex-col sm:flex-row items-start sm:items-center text-left">
+          <InfoIcon className="stroke-current shrink-0 w-6 h-6 mt-1 sm:mt-0" />
           <div>
-            {todos.length === 0 ? (
+            {mainTodos.length === 0 ? (
               <>
                 <h3 className="font-bold">No tasks yet</h3>
                 <div className="text-xs">

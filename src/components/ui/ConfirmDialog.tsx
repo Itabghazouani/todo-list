@@ -40,26 +40,35 @@ const ConfirmDialog = ({
   return (
     <dialog
       ref={dialogRef}
-      className="modal modal-bottom sm:modal-middle"
+      className="modal modal-bottom sm:modal-middle z-50"
       onClose={onCancel}
     >
-      <div className="modal-box">
-        <h3 className="font-bold text-lg flex items-center gap-2">
-          <AlertCircle size={20} />
-          {title}
+      <div className="modal-box max-w-xs sm:max-w-md mx-auto">
+        <h3 className="font-bold text-base sm:text-lg flex items-center gap-2">
+          <AlertCircle size={20} className="flex-shrink-0" />
+          <span className="break-words">{title}</span>
         </h3>
-        <p className="py-4">{message}</p>
-        <div className="modal-action">
-          <button className="btn" onClick={onCancel}>
-            {cancelText}
-          </button>
-          <button className={`btn ${confirmButtonClass}`} onClick={onConfirm}>
+        <p className="py-3 sm:py-4 text-sm sm:text-base">{message}</p>
+        <div className="modal-action flex flex-row gap-2 mt-4">
+          <button
+            className={`btn btn-sm sm:btn-md flex-1 ${confirmButtonClass}`}
+            onClick={onConfirm}
+          >
             {confirmText}
+          </button>
+          <button className="btn btn-sm sm:btn-md flex-1" onClick={onCancel}>
+            {cancelText}
           </button>
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button onClick={onCancel}>close</button>
+        <button
+          className="absolute inset-0 w-full h-full cursor-default"
+          onClick={onCancel}
+          aria-label="Close dialog"
+        >
+          close
+        </button>
       </form>
     </dialog>
   );

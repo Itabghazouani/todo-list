@@ -124,47 +124,47 @@ const SearchAndFilterBar = ({
     searchTerm || selectedCategory || selectedPriority || !showCompleted;
 
   return (
-    <div className="bg-base-200 rounded-lg p-4 mb-4 shadow-sm">
+    <div className="bg-base-200 rounded-lg p-3 sm:p-4 mb-4 shadow-sm">
       <div className="relative">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <Search size={18} className="text-base-content/70" />
+          <Search size={16} className="text-base-content/70" />
         </div>
         <input
           type="text"
           value={searchTerm}
           onChange={handleSearch}
           placeholder="Search todos..."
-          className="input input-bordered w-full pl-10"
+          className="input input-bordered input-sm sm:input-md w-full pl-9"
         />
       </div>
 
-      <div className="flex justify-between mt-3">
+      <div className="flex flex-wrap justify-between mt-3 gap-2">
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`btn btn-sm gap-2 ${
+          className={`btn btn-xs sm:btn-sm gap-1 ${
             showFilters ? 'btn-primary' : 'btn-ghost'
           }`}
         >
-          <Filter size={16} />
-          {showFilters ? 'Hide Filters' : 'Show Filters'}
+          <Filter size={14} />
+          <span>{showFilters ? 'Hide' : 'Show'} Filters</span>
         </button>
 
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="btn btn-sm btn-ghost gap-1 text-error"
+            className="btn btn-xs sm:btn-sm btn-ghost gap-1 text-error"
           >
-            <X size={16} />
-            Clear All Filters
+            <X size={14} />
+            <span className="sm:inline">Clear Filters</span>
           </button>
         )}
       </div>
 
       {showFilters && (
-        <div className="mt-3 space-y-4">
+        <div className="mt-3 space-y-3 sm:space-y-4">
           <div>
-            <label className="label">
-              <span className="label-text font-medium">Category</span>
+            <label className="label py-1">
+              <span className="label-text font-medium text-sm">Category</span>
               {selectedCategory && (
                 <button
                   className="label-text-alt text-error flex items-center gap-1"
@@ -174,9 +174,9 @@ const SearchAndFilterBar = ({
                 </button>
               )}
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               <button
-                className={`btn btn-sm ${
+                className={`btn btn-xs sm:btn-sm ${
                   !selectedCategory ? 'btn-primary' : 'btn-ghost'
                 }`}
                 onClick={() => handleCategoryChange(null)}
@@ -186,7 +186,7 @@ const SearchAndFilterBar = ({
               {Object.entries(CATEGORIES).map(([key, value]) => (
                 <button
                   key={key}
-                  className={`btn btn-sm ${
+                  className={`btn btn-xs sm:btn-sm ${
                     selectedCategory === key
                       ? `${CATEGORY_STYLES[key].replace(
                           'text-white',
@@ -203,8 +203,8 @@ const SearchAndFilterBar = ({
           </div>
 
           <div>
-            <label className="label">
-              <span className="label-text font-medium">Priority</span>
+            <label className="label py-1">
+              <span className="label-text font-medium text-sm">Priority</span>
               {selectedPriority && (
                 <button
                   className="label-text-alt text-error flex items-center gap-1"
@@ -214,9 +214,9 @@ const SearchAndFilterBar = ({
                 </button>
               )}
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               <button
-                className={`btn btn-sm ${
+                className={`btn btn-xs sm:btn-sm ${
                   !selectedPriority ? 'btn-primary' : 'btn-ghost'
                 }`}
                 onClick={() => handlePriorityChange(null)}
@@ -226,7 +226,7 @@ const SearchAndFilterBar = ({
               {Object.entries(PRIORITIES).map(([key, value]) => (
                 <button
                   key={key}
-                  className={`btn btn-sm ${
+                  className={`btn btn-xs sm:btn-sm ${
                     selectedPriority === key
                       ? `${PRIORITY_STYLES[key].replace(
                           'text-white',
@@ -243,45 +243,47 @@ const SearchAndFilterBar = ({
           </div>
 
           <div>
-            <label className="label cursor-pointer justify-start gap-2">
+            <label className="label cursor-pointer justify-start gap-2 py-1">
               <input
                 type="checkbox"
                 checked={showCompleted}
                 onChange={handleCompletedChange}
-                className="checkbox"
+                className="checkbox checkbox-sm"
               />
-              <span className="label-text">Show Completed Tasks</span>
+              <span className="label-text text-sm">Show Completed Tasks</span>
             </label>
           </div>
 
           {hasActiveFilters && (
-            <div className="bg-base-300 p-3 rounded-lg">
-              <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                <Filter size={14} />
+            <div className="bg-base-300 p-2 sm:p-3 rounded-lg">
+              <h3 className="text-xs sm:text-sm font-medium mb-1 sm:mb-2 flex items-center gap-1">
+                <Filter size={12} />
                 Active Filters:
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1 sm:gap-2">
                 {searchTerm && (
-                  <span className="badge badge-neutral">
+                  <span className="badge badge-neutral badge-sm sm:badge-md">
                     Search: &quot;{searchTerm}&quot;
                   </span>
                 )}
                 {selectedCategory && (
                   <span
-                    className={`badge ${CATEGORY_STYLES[selectedCategory]}`}
+                    className={`badge badge-sm sm:badge-md ${CATEGORY_STYLES[selectedCategory]}`}
                   >
                     {CATEGORIES[selectedCategory as keyof typeof CATEGORIES]}
                   </span>
                 )}
                 {selectedPriority && (
                   <span
-                    className={`badge ${PRIORITY_STYLES[selectedPriority]}`}
+                    className={`badge badge-sm sm:badge-md ${PRIORITY_STYLES[selectedPriority]}`}
                   >
                     {PRIORITIES[selectedPriority as keyof typeof PRIORITIES]}
                   </span>
                 )}
                 {!showCompleted && (
-                  <span className="badge badge-accent">Hide Completed</span>
+                  <span className="badge badge-accent badge-sm sm:badge-md">
+                    Hide Completed
+                  </span>
                 )}
               </div>
             </div>

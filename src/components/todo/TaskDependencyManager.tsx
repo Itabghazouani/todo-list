@@ -152,38 +152,44 @@ const TaskDependencyManager = ({
   };
 
   return (
-    <div className="mt-3 bg-base-200 rounded-lg p-3">
-      <div className="flex justify-between items-center mb-2">
+    <div className="mt-3 bg-base-200 rounded-lg p-2 sm:p-3">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
         <button
-          className="flex items-center gap-1 text-sm font-medium"
+          className="flex items-center gap-1 text-xs sm:text-sm font-medium"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          Dependencies ({dependencies.length})
+          {isExpanded ? (
+            <ChevronUp size={14} className="sm:w-4 sm:h-4" />
+          ) : (
+            <ChevronDown size={14} className="sm:w-4 sm:h-4" />
+          )}
+          <span className="whitespace-nowrap">
+            Dependencies ({dependencies.length})
+          </span>
         </button>
 
         {!isCompleted && (
           <button
             onClick={handleAddDependencyClick}
-            className="btn btn-xs btn-ghost"
+            className="btn btn-xs btn-ghost h-7 min-h-0"
             disabled={isLoading || isAddingDependency}
           >
-            <Plus size={14} />
-            Add dependency
+            <Plus size={12} className="sm:w-3.5 sm:h-3.5" />
+            <span className="text-xs">Add dependency</span>
           </button>
         )}
       </div>
 
       {isExpanded && (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {isAddingDependency && (
-            <div className="flex flex-col gap-2 p-2 bg-base-300 rounded-md">
-              <div className="text-sm font-medium">
+            <div className="flex flex-col gap-1 sm:gap-2 p-1.5 sm:p-2 bg-base-300 rounded-md">
+              <div className="text-xs sm:text-sm font-medium">
                 Select a task that must be completed before this one:
               </div>
 
               <select
-                className="select select-bordered select-sm w-full"
+                className="select select-bordered select-xs sm:select-sm w-full text-xs sm:text-sm"
                 value={selectedTaskId}
                 onChange={(e) => setSelectedTaskId(e.target.value)}
                 disabled={isLoading}
@@ -196,16 +202,16 @@ const TaskDependencyManager = ({
                 ))}
               </select>
 
-              <div className="flex justify-end gap-2 mt-1">
+              <div className="flex justify-end gap-1 sm:gap-2 mt-1">
                 <button
-                  className="btn btn-sm btn-ghost"
+                  className="btn btn-xs sm:btn-sm btn-ghost text-xs sm:text-sm"
                   onClick={() => setIsAddingDependency(false)}
                   disabled={isLoading}
                 >
                   Cancel
                 </button>
                 <button
-                  className="btn btn-sm btn-primary"
+                  className="btn btn-xs sm:btn-sm btn-primary text-xs sm:text-sm"
                   onClick={handleAddDependency}
                   disabled={isLoading || !selectedTaskId}
                 >
@@ -216,34 +222,40 @@ const TaskDependencyManager = ({
           )}
 
           {isLoading && dependencies.length === 0 ? (
-            <div className="flex justify-center p-4">
-              <LoadingSpinner size={24} />
+            <div className="flex justify-center p-2 sm:p-4">
+              <LoadingSpinner size={20} />
             </div>
           ) : dependencies.length === 0 ? (
-            <div className="text-center text-base-content/70 py-2 text-sm">
+            <div className="text-center text-base-content/70 py-1 sm:py-2 text-xs sm:text-sm">
               {isAddingDependency
                 ? 'Select a task from the dropdown above.'
                 : 'No dependencies yet. Add tasks that must be completed before this one.'}
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2">
               {dependencies.map((dependency) => (
                 <div
                   key={dependency.id}
-                  className="flex justify-between items-center p-2 bg-base-100 rounded-md"
+                  className="flex justify-between items-center p-1.5 sm:p-2 bg-base-100 rounded-md"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-grow min-w-0">
                     {dependency.dependsOnTodo?.completed ? (
-                      <CheckCircle2 size={16} className="text-success" />
+                      <CheckCircle2
+                        size={14}
+                        className="sm:w-4 sm:h-4 text-success flex-shrink-0"
+                      />
                     ) : (
-                      <Circle size={16} />
+                      <Circle
+                        size={14}
+                        className="sm:w-4 sm:h-4 flex-shrink-0"
+                      />
                     )}
                     <span
-                      className={
+                      className={`text-xs sm:text-sm truncate ${
                         dependency.dependsOnTodo?.completed
                           ? 'line-through opacity-70'
                           : ''
-                      }
+                      }`}
                     >
                       {dependency.dependsOnTodo?.desc || 'Unknown task'}
                     </span>
@@ -251,13 +263,14 @@ const TaskDependencyManager = ({
 
                   {!isCompleted && (
                     <button
-                      className="btn btn-xs btn-ghost text-error"
+                      className="btn btn-xs btn-ghost text-error flex-shrink-0 h-6 min-h-0 w-6 p-0"
                       onClick={() =>
                         handleRemoveDependency(dependency.dependsOnTodoId)
                       }
                       disabled={isLoading}
+                      aria-label="Remove dependency"
                     >
-                      <X size={14} />
+                      <X size={12} className="sm:w-3.5 sm:h-3.5" />
                     </button>
                   )}
                 </div>

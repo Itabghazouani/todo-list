@@ -94,49 +94,68 @@ const AppHeader = () => {
           <button
             className="md:hidden btn btn-sm btn-ghost"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-base-200 border-t border-base-300 py-2">
-          <nav className="flex flex-col px-4 py-2 space-y-2">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center gap-2 p-2 rounded-md ${
-                    isActive(item.href)
-                      ? 'bg-primary text-primary-content'
-                      : 'text-base-content'
-                  }`}
+      {/* Mobile menu - positioned on the right side */}
+      <div
+        className={`fixed top-16 right-0 h-screen bg-base-200 border-l border-base-300 shadow-lg transition-transform duration-300 ease-in-out z-50 w-64 md:hidden ${
+          isMobileMenuOpen ? 'transform-none' : 'translate-x-full'
+        }`}
+      >
+        <nav className="flex flex-col p-4 space-y-3">
+          {navigation.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-2 p-2 rounded-md transition-colors ${
+                  isActive(item.href)
+                    ? 'bg-primary text-primary-content'
+                    : 'text-base-content hover:bg-base-300'
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Icon size={18} />
+                {item.name}
+              </Link>
+            );
+          })}
+          <SignedOut>
+            <div className="pt-3 border-t border-base-300 mt-3 flex flex-col gap-2">
+              <SignInButton mode="modal">
+                <button
+                  className="btn btn-sm btn-outline w-full"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <Icon size={18} />
-                  {item.name}
-                </Link>
-              );
-            })}
-            <SignedOut>
-              <div className="pt-2 border-t border-base-300 mt-2 flex flex-col gap-2">
-                <SignInButton mode="modal">
-                  <button className="btn btn-sm btn-outline w-full">
-                    Sign in
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button className="btn btn-sm btn-primary w-full">
-                    Sign up
-                  </button>
-                </SignUpButton>
-              </div>
-            </SignedOut>
-          </nav>
-        </div>
+                  Sign in
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button
+                  className="btn btn-sm btn-primary w-full"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign up
+                </button>
+              </SignUpButton>
+            </div>
+          </SignedOut>
+        </nav>
+      </div>
+
+      {/* Overlay to close menu when clicking outside */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
       )}
     </header>
   );

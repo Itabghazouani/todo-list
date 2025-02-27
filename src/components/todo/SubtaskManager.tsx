@@ -181,32 +181,38 @@ const SubtaskManager = ({
       : 0;
 
   return (
-    <div className="mt-3 bg-base-200 rounded-lg p-3">
-      <div className="flex justify-between items-center mb-2">
+    <div className="mt-3 bg-base-200 rounded-lg p-2 sm:p-3">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
         <button
-          className="flex items-center gap-1 text-sm font-medium"
+          className="flex items-center gap-1 text-xs sm:text-sm font-medium"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          Subtasks ({completedSubtasks}/{totalSubtasks})
+          {isExpanded ? (
+            <ChevronUp size={14} className="sm:w-4 sm:h-4" />
+          ) : (
+            <ChevronDown size={14} className="sm:w-4 sm:h-4" />
+          )}
+          <span className="whitespace-nowrap">
+            Subtasks ({completedSubtasks}/{totalSubtasks})
+          </span>
         </button>
 
         {!isCompleted && (
           <button
             onClick={() => setIsAddingSubtask(!isAddingSubtask)}
-            className="btn btn-xs btn-ghost"
+            className="btn btn-xs btn-ghost h-7 min-h-0"
             disabled={isLoading}
           >
-            <PlusCircle size={14} />
-            Add subtask
+            <PlusCircle size={12} className="sm:w-3.5 sm:h-3.5" />
+            <span className="text-xs">Add subtask</span>
           </button>
         )}
       </div>
 
       {totalSubtasks > 0 && (
-        <div className="w-full bg-base-300 rounded-full h-2.5 mb-3">
+        <div className="w-full bg-base-300 rounded-full h-1.5 sm:h-2.5 mb-2 sm:mb-3">
           <div
-            className="bg-primary h-2.5 rounded-full"
+            className="bg-primary h-1.5 sm:h-2.5 rounded-full"
             style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
@@ -215,48 +221,53 @@ const SubtaskManager = ({
       {isExpanded && (
         <div className="space-y-2">
           {isAddingSubtask && (
-            <form onSubmit={handleAddSubtask} className="flex gap-2 mb-3">
+            <form
+              onSubmit={handleAddSubtask}
+              className="flex gap-1 sm:gap-2 mb-2 sm:mb-3"
+            >
               <input
                 type="text"
                 value={newSubtaskDesc}
                 onChange={(e) => setNewSubtaskDesc(e.target.value)}
-                className="input input-bordered input-sm flex-grow"
+                className="input input-bordered input-xs sm:input-sm flex-grow text-xs sm:text-sm"
                 placeholder="Add a subtask..."
                 disabled={isLoading}
                 autoFocus
               />
-              <button
-                type="submit"
-                className="btn btn-sm btn-primary btn-square"
-                disabled={isLoading || !newSubtaskDesc.trim()}
-              >
-                <Save size={16} />
-              </button>
-              <button
-                type="button"
-                className="btn btn-sm btn-ghost btn-square"
-                onClick={() => setIsAddingSubtask(false)}
-                disabled={isLoading}
-              >
-                <X size={16} />
-              </button>
+              <div className="flex gap-1">
+                <button
+                  type="submit"
+                  className="btn btn-xs sm:btn-sm btn-primary btn-square"
+                  disabled={isLoading || !newSubtaskDesc.trim()}
+                >
+                  <Save size={14} className="sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-xs sm:btn-sm btn-ghost btn-square"
+                  onClick={() => setIsAddingSubtask(false)}
+                  disabled={isLoading}
+                >
+                  <X size={14} className="sm:w-4 sm:h-4" />
+                </button>
+              </div>
             </form>
           )}
 
           {isLoading && subtasks.length === 0 ? (
-            <div className="flex justify-center p-4">
-              <LoadingSpinner size={24} />
+            <div className="flex justify-center p-2 sm:p-4">
+              <LoadingSpinner size={20} />
             </div>
           ) : subtasks.length === 0 ? (
-            <div className="text-center text-base-content/70 py-2 text-sm">
+            <div className="text-center text-base-content/70 py-1 sm:py-2 text-xs sm:text-sm">
               No subtasks yet. Add some to break down this task.
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2">
               {subtasks.map((subtask) => (
                 <div
                   key={subtask.id}
-                  className="pl-3 border-l-2 border-base-300"
+                  className="pl-2 sm:pl-3 border-l-2 border-base-300"
                 >
                   <TodoCard
                     todo={subtask}
@@ -264,6 +275,8 @@ const SubtaskManager = ({
                     onDelete={handleSubtaskDelete}
                     isLoading={isLoading}
                     isSubtaskView={true} // Add this prop to prevent nested SubtaskManagers
+                    hideCategory={true}
+                    hidePriority={true}
                   />
                 </div>
               ))}
