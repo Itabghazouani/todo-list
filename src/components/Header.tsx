@@ -39,7 +39,6 @@ const AppHeader = () => {
   return (
     <header className="bg-base-200 border-b border-base-300">
       <div className="max-w-7xl mx-auto flex justify-between items-center p-4 h-16">
-        {/* Logo and brand */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
             <CheckSquare size={24} className="text-primary" />
@@ -49,7 +48,6 @@ const AppHeader = () => {
           </Link>
         </div>
 
-        {/* Desktop navigation */}
         <nav className="hidden md:flex items-center gap-1">
           {navigation.map((item) => {
             const Icon = item.icon;
@@ -68,7 +66,6 @@ const AppHeader = () => {
           })}
         </nav>
 
-        {/* Right side elements - theme switcher and user menu */}
         <div className="flex items-center gap-2">
           <ThemeSwitcher />
 
@@ -94,7 +91,6 @@ const AppHeader = () => {
             />
           </SignedIn>
 
-          {/* Mobile menu button */}
           <button
             className="md:hidden btn btn-sm btn-ghost"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -104,7 +100,6 @@ const AppHeader = () => {
         </div>
       </div>
 
-      {/* Mobile navigation */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-base-200 border-t border-base-300 py-2">
           <nav className="flex flex-col px-4 py-2 space-y-2">

@@ -23,12 +23,45 @@ model User {
 model Todo {
   id        String   @id @default(uuid()) @map("_id")
   desc      String
-  category  Category // Changed to use enum
+  category  Category
   priority  Priority
   completed Boolean  @default(false)
   createdAt DateTime @default(now())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+
+  // Subtask fields
+  isSubtask Boolean @default(false)
+  parentId  String?
+  parent    Todo?   @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subtasks  Todo[]  @relation("ParentChild")
+
+  // Recurring task fields
+  isRecurring        Boolean   @default(false)
+  recurrenceType     String?
+  recurrenceInterval Int?
+  recurrenceEndDate  DateTime?
+  nextOccurrence     DateTime?
+  lastCompletedAt    DateTime?
+
+  // Dependencies (stored in a separate collection)
+  dependencies   TodoDependency[] @relation("TaskDependencies")
+  dependentTasks TodoDependency[] @relation("DependentTasks")
+}
+
+// Model for task dependencies
+model TodoDependency {
+  id              String   @id @default(uuid()) @map("_id")
+  todoId          String // The task that depends on another
+  dependsOnTodoId String // The task that is depended upon
+  createdAt       DateTime @default(now())
+
+  // Relations
+  todo          Todo @relation("TaskDependencies", fields: [todoId], references: [id], onDelete: Cascade)
+  dependsOnTodo Todo @relation("DependentTasks", fields: [dependsOnTodoId], references: [id], onDelete: Cascade)
+
+  // Ensure uniqueness of dependencies
+  @@unique([todoId, dependsOnTodoId])
 }
 
 enum Category {
@@ -46,4 +79,12 @@ enum Priority {
   IMPORTANT_NOT_URGENT     @map("Important - Not Urgent")
   NOT_IMPORTANT_URGENT     @map("Not Important - Urgent")
   NOT_IMPORTANT_NOT_URGENT @map("Not Important - Not Urgent")
+}
+
+enum RecurrenceType {
+  DAILY   @map("Daily")
+  WEEKLY  @map("Weekly")
+  MONTHLY @map("Monthly")
+  YEARLY  @map("Yearly")
+  CUSTOM  @map("Custom")
 }

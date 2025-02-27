@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToastStore } from '@/store/toastStore';
 import {
   CATEGORIES,
@@ -14,21 +14,38 @@ import type {
   TPriority,
   ICreateTodoInput,
   ITodo,
+  RecurrenceType,
 } from '@/types/todos';
 import Modal from '../Modal';
 import LoadingButton from '../ui/LoadingButton';
+import RecurringTaskSettings from './RecurringTaskSettings';
 
 interface IAddTodoProps {
   onTodoAdded?: (newTodo: ITodo) => void;
+  parentId?: string;
 }
 
-const AddTodo = ({ onTodoAdded }: IAddTodoProps) => {
+const AddTodo = ({ onTodoAdded, parentId }: IAddTodoProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<ICreateTodoInput>({
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const [formData, setFormData] = useState<
+    ICreateTodoInput & {
+      isRecurring: boolean;
+      recurrenceType?: RecurrenceType;
+      recurrenceInterval?: number;
+      recurrenceEndDate?: string;
+      isSubtask?: boolean;
+      parentId?: string;
+    }
+  >({
     desc: '',
     category: '' as TCategory,
     priority: '' as TPriority,
+    isRecurring: false,
+    isSubtask: !!parentId,
+    parentId,
   });
 
   const { addToast } = useToastStore();
@@ -38,7 +55,11 @@ const AddTodo = ({ onTodoAdded }: IAddTodoProps) => {
       desc: '',
       category: '' as TCategory,
       priority: '' as TPriority,
+      isRecurring: false,
+      isSubtask: !!parentId,
+      parentId,
     });
+    setShowAdvanced(false);
   };
 
   const handleOpenModal = () => {
@@ -63,7 +84,34 @@ const AddTodo = ({ onTodoAdded }: IAddTodoProps) => {
       addToast('Please select a priority', 'warning');
       return false;
     }
+
+    if (formData.isRecurring) {
+      if (!formData.recurrenceType) {
+        addToast('Please select a recurrence pattern', 'warning');
+        return false;
+      }
+      if (!formData.recurrenceInterval || formData.recurrenceInterval < 1) {
+        addToast('Please enter a valid recurrence interval', 'warning');
+        return false;
+      }
+    }
+
     return true;
+  };
+
+  const handleRecurrenceChange = (recurrenceData: {
+    isRecurring: boolean;
+    recurrenceType?: RecurrenceType | null;
+    recurrenceInterval?: number | null;
+    recurrenceEndDate?: string | null;
+  }) => {
+    setFormData({
+      ...formData,
+      isRecurring: recurrenceData.isRecurring,
+      recurrenceType: recurrenceData.recurrenceType || undefined,
+      recurrenceInterval: recurrenceData.recurrenceInterval || undefined,
+      recurrenceEndDate: recurrenceData.recurrenceEndDate || undefined,
+    });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -73,12 +121,18 @@ const AddTodo = ({ onTodoAdded }: IAddTodoProps) => {
 
     setIsSubmitting(true);
     try {
+      const submitData = {
+        ...formData,
+        isSubtask: !!parentId,
+        parentId: parentId || undefined,
+      };
+
       const response = await fetch('/api/todos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -105,18 +159,19 @@ const AddTodo = ({ onTodoAdded }: IAddTodoProps) => {
         onClick={handleOpenModal}
         className="btn btn-primary w-full gap-2"
       >
-        Add new task
+        {parentId ? 'Add subtask' : 'Add new task'}
         <Plus className="h-5 w-5" />
       </button>
 
       <Modal modalOpen={modalOpen} setModalOpen={setModalOpen}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="text-center">
             <h3 className="font-bold text-lg text-base-content">
-              Add new task
+              {parentId ? 'Add subtask' : 'Add new task'}
             </h3>
             <p className="text-base-content/70 text-sm mt-1">
-              Fill in the details to create a new task
+              Fill in the details to create a{' '}
+              {parentId ? 'subtask' : 'new task'}
             </p>
           </div>
 
@@ -203,6 +258,37 @@ const AddTodo = ({ onTodoAdded }: IAddTodoProps) => {
               ))}
             </div>
           </div>
+
+          <button
+            type="button"
+            className="btn btn-sm btn-ghost w-full"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            {showAdvanced ? (
+              <>
+                <ChevronUp size={16} /> Hide advanced options
+              </>
+            ) : (
+              <>
+                <ChevronDown size={16} /> Show advanced options
+              </>
+            )}
+          </button>
+
+          {showAdvanced && (
+            <div className="bg-base-200 p-4 rounded-lg">
+              {!parentId && (
+                <RecurringTaskSettings
+                  isRecurring={formData.isRecurring}
+                  recurrenceType={formData.recurrenceType}
+                  recurrenceInterval={formData.recurrenceInterval}
+                  recurrenceEndDate={formData.recurrenceEndDate}
+                  onRecurrenceChange={handleRecurrenceChange}
+                  disabled={isSubmitting}
+                />
+              )}
+            </div>
+          )}
 
           <div className="modal-action">
             <button

@@ -135,7 +135,6 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Quick tips */}
         {!loading && todos.length > 0 && (
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="stat bg-base-100 shadow-sm rounded-box">
@@ -167,12 +166,10 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Main dashboard component */}
         <div className="bg-base-100 rounded-box shadow-sm p-4">
           <UserDashboard todos={todos} loading={loading} />
         </div>
 
-        {/* Learn more card */}
         <div className="card bg-base-200">
           <div className="card-body">
             <h2 className="card-title">Want to improve your productivity?</h2>

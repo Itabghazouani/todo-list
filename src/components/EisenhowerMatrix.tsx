@@ -43,7 +43,6 @@ const EisenhowerMatrix = ({
     ),
   };
 
-  // Calculate counts for each quadrant
   const counts = {
     IMPORTANT_URGENT: todos.filter(
       (todo) => todo.priority === 'IMPORTANT_URGENT',
@@ -59,12 +58,10 @@ const EisenhowerMatrix = ({
     ).length,
   };
 
-  // Handle quadrant click to filter
   const handleQuadrantClick = (quadrant: string) => {
     setActiveQuadrant(activeQuadrant === quadrant ? null : quadrant);
   };
 
-  // Matrices data for rendering
   const matrices = [
     {
       id: 'IMPORTANT_URGENT',
@@ -208,7 +205,6 @@ const EisenhowerMatrix = ({
         ))}
       </div>
 
-      {/* Legend */}
       <div className="mt-6 p-4 bg-base-200 rounded-lg">
         <h3 className="font-medium mb-2">Eisenhower Matrix Guide</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

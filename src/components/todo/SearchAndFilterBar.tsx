@@ -15,7 +15,6 @@ interface ISearchAndFilterBarProps {
   onCategoryFilter: (category: string | null) => void;
   onPriorityFilter: (priority: string | null) => void;
   onCompletedFilter: (showCompleted: boolean) => void;
-  // These props are optional and are for syncing with parent state if needed
   initialSearchTerm?: string;
   initialCategoryFilter?: string | null;
   initialPriorityFilter?: string | null;
@@ -43,7 +42,6 @@ const SearchAndFilterBar = ({
   const [showCompleted, setShowCompleted] = useState(initialShowCompleted);
   const { addToast } = useToastStore();
 
-  // Sync with parent state if props change
   useEffect(() => {
     if (initialSearchTerm !== undefined && initialSearchTerm !== searchTerm) {
       setSearchTerm(initialSearchTerm);
@@ -122,7 +120,6 @@ const SearchAndFilterBar = ({
     addToast('All filters cleared', 'info');
   };
 
-  // Check if any filters are active
   const hasActiveFilters =
     searchTerm || selectedCategory || selectedPriority || !showCompleted;
 
@@ -165,7 +162,6 @@ const SearchAndFilterBar = ({
 
       {showFilters && (
         <div className="mt-3 space-y-4">
-          {/* Category filter with visual buttons */}
           <div>
             <label className="label">
               <span className="label-text font-medium">Category</span>
@@ -206,7 +202,6 @@ const SearchAndFilterBar = ({
             </div>
           </div>
 
-          {/* Priority filter with visual buttons */}
           <div>
             <label className="label">
               <span className="label-text font-medium">Priority</span>
@@ -247,7 +242,6 @@ const SearchAndFilterBar = ({
             </div>
           </div>
 
-          {/* Completed Toggle */}
           <div>
             <label className="label cursor-pointer justify-start gap-2">
               <input
@@ -260,7 +254,6 @@ const SearchAndFilterBar = ({
             </label>
           </div>
 
-          {/* Active filters summary */}
           {hasActiveFilters && (
             <div className="bg-base-300 p-3 rounded-lg">
               <h3 className="text-sm font-medium mb-2 flex items-center gap-2">

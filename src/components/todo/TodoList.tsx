@@ -7,15 +7,15 @@ import { TodoCard } from './TodoCard';
 import SearchAndFilterBar from './SearchAndFilterBar';
 import { useToastStore } from '@/store/toastStore';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { sortTodosByPriority } from '@/utils/todoUtils';
 
 interface ITodoListProps {
   todos: ITodo[];
+  onUpdateTodo: (updatedTodo: ITodo) => void;
+  onDeleteTodo: (todoId: string) => void;
 }
 
-const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
-  const [todos, setTodos] = useState<ITodo[]>(initialTodos);
-  const [filteredTodos, setFilteredTodos] = useState<ITodo[]>(initialTodos);
+const TodoList = ({ todos, onUpdateTodo, onDeleteTodo }: ITodoListProps) => {
+  const [filteredTodos, setFilteredTodos] = useState<ITodo[]>(todos);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
@@ -23,14 +23,8 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
   const { addToast } = useToastStore();
 
-  // Track active filters for display
   const hasActiveFilters =
     searchTerm || categoryFilter || priorityFilter || !showCompleted;
-
-  // Apply filters when dependencies change
-  useEffect(() => {
-    setTodos(initialTodos);
-  }, [initialTodos]);
 
   const applyFilters = useCallback(() => {
     let result = [...todos];
@@ -79,15 +73,11 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
 
       if (!response.ok) throw new Error('Failed to update todo');
 
-      // Update the todo in state
-      setTodos((currentTodos) => {
-        const updatedTodos = currentTodos.map((todo) =>
-          todo.id === updatedTodo.id ? updatedTodo : todo,
-        );
+      // Get the updated todo from the response
+      const serverUpdatedTodo = await response.json();
 
-        // Re-sort the todos after update (using your sorting utility)
-        return sortTodosByPriority(updatedTodos);
-      });
+      // Call the parent's update function
+      onUpdateTodo(serverUpdatedTodo);
 
       addToast('Task updated successfully', 'success');
     } catch (error) {
@@ -102,7 +92,9 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
     const existingTodo = todos.find((t) => t.id === baseTodo.id);
     if (!existingTodo) return;
 
+    // Make sure to include all properties from both objects
     const fullTodo: ITodo = {
+      ...existingTodo,
       ...baseTodo,
       createdAt: existingTodo.createdAt,
       userId: existingTodo.userId,
@@ -121,9 +113,8 @@ const TodoList = ({ todos: initialTodos }: ITodoListProps) => {
 
       if (!response.ok) throw new Error('Failed to delete todo');
 
-      setTodos((currentTodos) =>
-        currentTodos.filter((todo) => todo.id !== todoId),
-      );
+      // Call the parent's delete function
+      onDeleteTodo(todoId);
 
       addToast('Task deleted successfully', 'success');
     } catch (error) {

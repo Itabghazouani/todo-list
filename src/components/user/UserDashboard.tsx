@@ -39,7 +39,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
     'overview' | 'completion' | 'trends'
   >('overview');
 
-  // Empty state handler
   if (!loading && (!todos || todos.length === 0)) {
     return (
       <div className="bg-base-200 rounded-xl p-8 text-center">
@@ -55,7 +54,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
     );
   }
 
-  // Loading state
   if (loading) {
     return (
       <div className="bg-base-200 rounded-xl p-16 flex items-center justify-center">
@@ -64,13 +62,11 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
     );
   }
 
-  // Calculate metrics
   const completedTodos = todos.filter((todo) => todo.completed);
   const completionRate = Math.round(
     (completedTodos.length / todos.length) * 100,
   );
 
-  // Prepare data for priority distribution chart
   const priorityData = Object.keys(PRIORITIES).map((priority) => {
     const count = todos.filter((todo) => todo.priority === priority).length;
     return {
@@ -80,7 +76,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
     };
   });
 
-  // Prepare data for completion by priority chart
   const completionByPriority = Object.keys(PRIORITIES).map((priority) => {
     const totalInPriority = todos.filter(
       (todo) => todo.priority === priority,
@@ -99,7 +94,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
     };
   });
 
-  // Prepare data for completion by category chart
   const completionByCategory = Object.keys(CATEGORIES).map((category) => {
     const totalInCategory = todos.filter(
       (todo) => todo.category === category,
@@ -115,7 +109,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
     };
   });
 
-  // Colors for the pie chart segments
   const PRIORITY_COLORS = {
     IMPORTANT_URGENT: '#B91C1C', // red-800
     IMPORTANT_NOT_URGENT: '#1D4ED8', // blue-700
@@ -123,7 +116,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
     NOT_IMPORTANT_NOT_URGENT: '#6B7280', // gray-500
   };
 
-  // Mock trends data (in a real app, this would come from a database with timestamps)
   const trendData = [
     { day: 'Mon', tasks: 4, completed: 3 },
     { day: 'Tue', tasks: 6, completed: 4 },
@@ -136,7 +128,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body p-4">
@@ -200,7 +191,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
             <div className="flex justify-between items-center">
               <h3 className="card-title text-lg">Productivity Score</h3>
               <div className="badge badge-info badge-lg">
-                {/* Weight important tasks higher in the score */}
                 {Math.min(
                   100,
                   Math.round(
@@ -225,7 +215,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
         </div>
       </div>
 
-      {/* Tab Navigation */}
       <div className="tabs tabs-boxed bg-base-200 p-1">
         <button
           className={`tab ${activeTab === 'overview' ? 'tab-active' : ''}`}
@@ -250,7 +239,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
         </button>
       </div>
 
-      {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="card bg-base-100 shadow-sm">
@@ -337,7 +325,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
         </div>
       )}
 
-      {/* Completion Tab */}
       {activeTab === 'completion' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="card bg-base-100 shadow-sm">
@@ -427,7 +414,6 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
         </div>
       )}
 
-      {/* Trends Tab */}
       {activeTab === 'trends' && (
         <div className="grid grid-cols-1 gap-6">
           <div className="card bg-base-100 shadow-sm">
@@ -526,12 +512,11 @@ const UserDashboard = ({ todos, loading = false }: UserDashboardProps) => {
         </div>
       )}
 
-      {/* Insights card */}
       <div className="card bg-primary bg-opacity-10 text-primary-content shadow-sm">
         <div className="card-body">
           <h3 className="card-title text-primary">Productivity Insights</h3>
           <div className="space-y-2">
-            <p>
+            <p className="text-base-content/70">
               {completionRate > 70
                 ? "You're doing great at completing tasks! Keep up the good work."
                 : completionRate > 40

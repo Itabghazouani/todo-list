@@ -10,7 +10,6 @@ const MatrixExplanationPage = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="space-y-8">
-        {/* Hero Section */}
         <div className="text-center py-12 space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold text-base-content">
             The Eisenhower Matrix
@@ -21,7 +20,6 @@ const MatrixExplanationPage = () => {
           </p>
         </div>
 
-        {/* Introduction */}
         <section className="prose prose-lg max-w-none">
           <h2>What is the Eisenhower Matrix?</h2>
           <div className="flex flex-col md:flex-row gap-6 items-center">
@@ -58,7 +56,6 @@ const MatrixExplanationPage = () => {
           </div>
         </section>
 
-        {/* How It Works */}
         <section className="prose prose-lg max-w-none">
           <h2>How Does the Eisenhower Matrix Work?</h2>
           <p>
@@ -67,7 +64,6 @@ const MatrixExplanationPage = () => {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 not-prose">
-            {/* Quadrant 1 */}
             <div className="card bg-red-50 border border-red-200 shadow-sm">
               <div className="card-body">
                 <h3 className="text-xl font-bold flex items-center gap-2 text-red-800">
@@ -91,7 +87,6 @@ const MatrixExplanationPage = () => {
               </div>
             </div>
 
-            {/* Quadrant 2 */}
             <div className="card bg-blue-50 border border-blue-200 shadow-sm">
               <div className="card-body">
                 <h3 className="text-xl font-bold flex items-center gap-2 text-blue-700">
@@ -115,7 +110,6 @@ const MatrixExplanationPage = () => {
               </div>
             </div>
 
-            {/* Quadrant 3 */}
             <div className="card bg-yellow-50 border border-yellow-200 shadow-sm">
               <div className="card-body">
                 <h3 className="text-xl font-bold flex items-center gap-2 text-yellow-600">
@@ -139,7 +133,6 @@ const MatrixExplanationPage = () => {
               </div>
             </div>
 
-            {/* Quadrant 4 */}
             <div className="card bg-gray-50 border border-gray-200 shadow-sm">
               <div className="card-body">
                 <h3 className="text-xl font-bold flex items-center gap-2 text-gray-600">
@@ -164,7 +157,6 @@ const MatrixExplanationPage = () => {
           </div>
         </section>
 
-        {/* Benefits */}
         <section className="prose prose-lg max-w-none">
           <h2>The Benefits of Using the Eisenhower Matrix</h2>
           <p>
@@ -221,7 +213,6 @@ const MatrixExplanationPage = () => {
           </div>
         </section>
 
-        {/* How to Use */}
         <section className="prose prose-lg max-w-none">
           <h2>How to Use the Eisenhower Matrix in Daily Life</h2>
 
@@ -304,7 +295,6 @@ const MatrixExplanationPage = () => {
           </div>
         </section>
 
-        {/* Conclusion & CTA */}
         <section className="bg-base-200 p-8 rounded-lg">
           <div className="prose prose-lg max-w-none">
             <h2 className="font-semibold">Conclusion</h2>

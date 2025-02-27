@@ -33,6 +33,21 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
     addToast('Todo added successfully!', 'success');
   };
 
+  const handleUpdateTodo = (updatedTodo: ITodo) => {
+    setTodos((currentTodos) => {
+      const updatedTodos = currentTodos.map((todo) =>
+        todo.id === updatedTodo.id ? updatedTodo : todo,
+      );
+      return sortTodosByPriority(updatedTodos);
+    });
+  };
+
+  const handleDeleteTodo = (todoId: string) => {
+    setTodos((currentTodos) =>
+      currentTodos.filter((todo) => todo.id !== todoId),
+    );
+  };
+
   const handleClearCompleted = async () => {
     try {
       const response = await fetch('/api/todos/clear', {
@@ -77,7 +92,51 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
     }
   };
 
+  const handleClearNonRecurring = async () => {
+    try {
+      // Optionally, you could first fetch the latest todos from the server
+      // to ensure you have the most up-to-date state
+      const latestTodosResponse = await fetch('/api/todos');
+      if (!latestTodosResponse.ok) {
+        throw new Error('Failed to fetch latest todos');
+      }
+      const latestTodos = (await latestTodosResponse.json()) as ITodo[];
+
+      // Now use the latest todos to determine which ones are recurring
+      const recurringTodoIds = latestTodos
+        .filter((todo) => todo.isRecurring)
+        .map((todo) => todo.id);
+
+      const response = await fetch('/api/todos/clear', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'non-recurring',
+          keepIds: recurringTodoIds,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to clear non-recurring todos');
+      }
+
+      // Update local state based on the recurring IDs from the server
+      setTodos((prevTodos) =>
+        prevTodos.filter((todo) => recurringTodoIds.includes(todo.id)),
+      );
+
+      addToast('Non-recurring todos cleared successfully', 'success');
+    } catch (error) {
+      console.error('Error clearing non-recurring todos:', error);
+      addToast('Failed to clear non-recurring todos', 'error');
+    }
+  };
+
   const completedCount = todos.filter((todo) => todo.completed).length;
+  const recurringCount = todos.filter((todo) => todo.isRecurring).length;
+  const totalCount = todos.length;
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-base-100">
@@ -119,8 +178,10 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
             <ClearTodos
               onClearCompleted={handleClearCompleted}
               onClearAll={handleClearAll}
+              onClearNonRecurring={handleClearNonRecurring}
               completedCount={completedCount}
-              totalCount={todos.length}
+              totalCount={totalCount}
+              recurringCount={recurringCount}
             />
           </div>
 
@@ -133,7 +194,11 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
                   </p>
                 </div>
               ) : viewMode === 'list' ? (
-                <TodoList todos={todos} />
+                <TodoList
+                  todos={todos}
+                  onUpdateTodo={handleUpdateTodo}
+                  onDeleteTodo={handleDeleteTodo}
+                />
               ) : (
                 <EisenhowerMatrix todos={todos} />
               )}

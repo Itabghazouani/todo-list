@@ -1,4 +1,3 @@
-// src/components/home/WelcomeComponent.tsx
 import { CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 

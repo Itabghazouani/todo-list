@@ -10,7 +10,6 @@ const ThemeSwitcher = () => {
   const { theme, setTheme } = useThemeStore();
   const [mounted, setMounted] = useState(false);
 
-  // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -22,7 +21,6 @@ const ThemeSwitcher = () => {
     setTheme(newTheme as TTheme);
   };
 
-  // Determine if current theme is dark
   const isDarkTheme = [
     'dark',
     'synthwave',

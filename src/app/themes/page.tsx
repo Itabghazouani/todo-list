@@ -18,26 +18,21 @@ const ThemesPage = () => {
   const [themeType, setThemeType] = useState<'all' | 'light' | 'dark'>('all');
   const { addToast } = useToastStore();
 
-  // Inside your ThemesPage component
   const router = useRouter();
 
-  // Add this function
   const handleGoBack = () => {
     router.back();
   };
 
-  // Filter themes based on search and light/dark filter
   useEffect(() => {
     let filtered = [...THEMES];
 
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter((t) =>
         t.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
-    // Apply theme type filter
     if (themeType !== 'all') {
       const darkThemes = [
         'dark',

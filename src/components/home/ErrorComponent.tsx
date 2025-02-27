@@ -1,4 +1,3 @@
-// src/components/home/ErrorComponent.tsx
 'use client';
 
 import { AlertTriangle } from 'lucide-react';

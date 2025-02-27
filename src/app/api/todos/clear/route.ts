@@ -2,46 +2,65 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = async (request: NextRequest) => {
   try {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { type } = await request.json();
+    const { type, keepIds } = await request.json();
 
-    if (type === 'completed') {
-      await prisma.todo.deleteMany({
-        where: {
-          userId,
-          completed: true,
-        },
-      });
+    switch (type) {
+      case 'completed':
+        await prisma.todo.deleteMany({
+          where: {
+            userId,
+            completed: true,
+          },
+        });
+        break;
 
-      return NextResponse.json({
-        message: 'Completed todos cleared successfully',
-      });
-    } else if (type === 'all') {
-      await prisma.todo.deleteMany({
-        where: {
-          userId,
-        },
-      });
+      case 'non-recurring':
+        if (keepIds && Array.isArray(keepIds)) {
+          // Delete all non-recurring todos except those with IDs in keepIds
+          await prisma.todo.deleteMany({
+            where: {
+              userId,
+              NOT: {
+                id: {
+                  in: keepIds,
+                },
+              },
+            },
+          });
+        } else {
+          // Fallback to deleting all non-recurring todos
+          await prisma.todo.deleteMany({
+            where: {
+              userId,
+              isRecurring: false,
+            },
+          });
+        }
+        break;
 
-      return NextResponse.json({ message: 'All todos cleared successfully' });
-    } else {
-      return NextResponse.json(
-        { error: 'Invalid clear type' },
-        { status: 400 },
-      );
+      case 'all':
+        await prisma.todo.deleteMany({
+          where: {
+            userId,
+          },
+        });
+        break;
+
+      default:
+        return new NextResponse('Invalid clear type', { status: 400 });
     }
+
+    return new NextResponse('Todos cleared successfully');
   } catch (error) {
     console.error('Error clearing todos:', error);
-    return NextResponse.json(
-      { error: 'Failed to clear todos' },
-      { status: 500 },
-    );
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
-}
+};

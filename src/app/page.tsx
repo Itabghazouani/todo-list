@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { Suspense } from 'react';
 import { prisma } from '@/lib/prisma';
 import { sortTodosByPriority } from '@/utils/todoUtils';
-import { ITodo } from '@/types/todos';
+import { ITodo, RecurrenceType } from '@/types/todos';
 import HomeComponent from '@/components/todo/HomeComponent';
 import {
   ErrorComponent,
@@ -22,8 +22,21 @@ const Home = async () => {
       where: { userId },
     });
 
-    // Use the utility function for sorting
-    const sortedTodos = sortTodosByPriority(todos);
+    const typedTodos = todos.map((todo) => ({
+      ...todo,
+      recurrenceType: todo.recurrenceType as RecurrenceType | null | undefined,
+      createdAt: todo.createdAt.toISOString(),
+      recurrenceEndDate: todo.recurrenceEndDate
+        ? todo.recurrenceEndDate.toISOString()
+        : null,
+      nextOccurrence: todo.nextOccurrence
+        ? todo.nextOccurrence.toISOString()
+        : null,
+      lastCompletedAt: todo.lastCompletedAt
+        ? todo.lastCompletedAt.toISOString()
+        : null,
+    }));
+    const sortedTodos = sortTodosByPriority(typedTodos as ITodo[]);
 
     return (
       <Suspense fallback={<LoadingHomeComponent />}>
