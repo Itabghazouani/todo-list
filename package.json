@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:db": "node --loader ts-node/esm --experimental-specifier-resolution=node src/__tests__/prisma.test.mts"
+    "test:db": "node --loader ts-node/esm --experimental-specifier-resolution=node src/__tests__/prisma.test.mts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.12.0",
