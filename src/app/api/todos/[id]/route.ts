@@ -201,6 +201,9 @@ export const DELETE = async (
 
     const existingTodo = await prisma.todo.findUnique({
       where: { id },
+      include: {
+        subtasks: true,
+      },
     });
 
     if (!existingTodo) {
@@ -209,6 +212,14 @@ export const DELETE = async (
 
     if (existingTodo.userId !== userId) {
       return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    if (existingTodo.subtasks && existingTodo.subtasks.length > 0) {
+      await prisma.todo.deleteMany({
+        where: {
+          parentId: id,
+        },
+      });
     }
 
     await prisma.todo.delete({

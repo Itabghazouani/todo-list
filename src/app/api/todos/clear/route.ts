@@ -18,16 +18,41 @@ export const DELETE = async (request: NextRequest) => {
           where: {
             userId,
             completed: true,
+            isSubtask: true,
+          },
+        });
+
+        await prisma.todo.deleteMany({
+          where: {
+            userId,
+            completed: true,
+            isSubtask: false,
           },
         });
         break;
 
       case 'non-recurring':
         if (keepIds && Array.isArray(keepIds)) {
-          // Delete all non-recurring todos except those with IDs in keepIds
+          // First, delete non-recurring subtasks not in keepIds
           await prisma.todo.deleteMany({
             where: {
               userId,
+              isSubtask: true,
+              isRecurring: false,
+              NOT: {
+                id: {
+                  in: keepIds,
+                },
+              },
+            },
+          });
+
+          // Then delete non-recurring parent tasks not in keepIds
+          await prisma.todo.deleteMany({
+            where: {
+              userId,
+              isSubtask: false,
+              isRecurring: false,
               NOT: {
                 id: {
                   in: keepIds,
@@ -36,10 +61,20 @@ export const DELETE = async (request: NextRequest) => {
             },
           });
         } else {
-          // Fallback to deleting all non-recurring todos
+          // First, delete all non-recurring subtasks
           await prisma.todo.deleteMany({
             where: {
               userId,
+              isSubtask: true,
+              isRecurring: false,
+            },
+          });
+
+          // Then delete all non-recurring parent tasks
+          await prisma.todo.deleteMany({
+            where: {
+              userId,
+              isSubtask: false,
               isRecurring: false,
             },
           });
@@ -47,9 +82,19 @@ export const DELETE = async (request: NextRequest) => {
         break;
 
       case 'all':
+        // First, delete all subtasks
         await prisma.todo.deleteMany({
           where: {
             userId,
+            isSubtask: true,
+          },
+        });
+
+        // Then delete all parent tasks
+        await prisma.todo.deleteMany({
+          where: {
+            userId,
+            isSubtask: false,
           },
         });
         break;
