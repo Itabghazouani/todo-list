@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, RepeatIcon } from 'lucide-react';
-import { RecurrenceType } from '@/types/todos';
+import { RecurrenceType, DayOfWeek } from '@/types/todos';
 import {
   RECURRENCE_TYPES,
   RECURRENCE_TYPE_STYLES,
@@ -15,20 +15,33 @@ interface RecurringTaskSettingsProps {
   recurrenceType?: RecurrenceType | null;
   recurrenceInterval?: number | null;
   recurrenceEndDate?: string | Date | null;
+  recurrenceDaysOfWeek?: string | null;
   onRecurrenceChange: (recurrenceData: {
     isRecurring: boolean;
     recurrenceType?: RecurrenceType | null;
     recurrenceInterval?: number | null;
     recurrenceEndDate?: string | null;
+    recurrenceDaysOfWeek?: string | null;
   }) => void;
   disabled?: boolean;
 }
+
+const DAYS_OF_WEEK = [
+  { key: DayOfWeek.MONDAY, label: 'Mon' },
+  { key: DayOfWeek.TUESDAY, label: 'Tue' },
+  { key: DayOfWeek.WEDNESDAY, label: 'Wed' },
+  { key: DayOfWeek.THURSDAY, label: 'Thu' },
+  { key: DayOfWeek.FRIDAY, label: 'Fri' },
+  { key: DayOfWeek.SATURDAY, label: 'Sat' },
+  { key: DayOfWeek.SUNDAY, label: 'Sun' },
+];
 
 const RecurringTaskSettings = ({
   isRecurring,
   recurrenceType,
   recurrenceInterval,
   recurrenceEndDate,
+  recurrenceDaysOfWeek,
   onRecurrenceChange,
   disabled = false,
 }: RecurringTaskSettingsProps) => {
@@ -44,6 +57,9 @@ const RecurringTaskSettings = ({
       ? new Date(recurrenceEndDate).toISOString().split('T')[0]
       : '',
   );
+  const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>(
+    recurrenceDaysOfWeek ? JSON.parse(recurrenceDaysOfWeek) : [],
+  );
 
   useEffect(() => {
     setLocalIsRecurring(isRecurring);
@@ -56,14 +72,39 @@ const RecurringTaskSettings = ({
     } else {
       setLocalEndDate('');
     }
-  }, [isRecurring, recurrenceType, recurrenceInterval, recurrenceEndDate]);
+
+    if (recurrenceDaysOfWeek) {
+      try {
+        setSelectedDays(JSON.parse(recurrenceDaysOfWeek));
+      } catch (error) {
+        console.error('Error:', error);
+        setSelectedDays([]);
+      }
+    } else {
+      setSelectedDays([]);
+    }
+  }, [
+    isRecurring,
+    recurrenceType,
+    recurrenceInterval,
+    recurrenceEndDate,
+    recurrenceDaysOfWeek,
+  ]);
 
   const updateRecurrence = () => {
+    // Simply pass the recurrence data to the parent component
+    // The form validation will happen at submission time
     onRecurrenceChange({
       isRecurring: localIsRecurring,
       recurrenceType: localIsRecurring ? localType : null,
       recurrenceInterval: localIsRecurring ? localInterval : null,
       recurrenceEndDate: localIsRecurring && localEndDate ? localEndDate : null,
+      recurrenceDaysOfWeek:
+        localIsRecurring &&
+        localType === RecurrenceType.WEEKLY &&
+        selectedDays.length > 0
+          ? JSON.stringify(selectedDays)
+          : null,
     });
   };
 
@@ -71,12 +112,51 @@ const RecurringTaskSettings = ({
     setLocalType(type);
     setLocalInterval(DEFAULT_RECURRENCE_INTERVALS[type]);
 
+    // If changing from weekly to another type, clear selected days
+    const updatedSelectedDays =
+      type === RecurrenceType.WEEKLY ? selectedDays : [];
+
+    // Do NOT default to the current day when changing to weekly
+    // Just keep whatever days were previously selected (if any)
+    setSelectedDays(updatedSelectedDays);
+
     onRecurrenceChange({
       isRecurring: localIsRecurring,
       recurrenceType: type,
       recurrenceInterval: DEFAULT_RECURRENCE_INTERVALS[type],
       recurrenceEndDate: localEndDate || null,
+      recurrenceDaysOfWeek:
+        type === RecurrenceType.WEEKLY && updatedSelectedDays.length > 0
+          ? JSON.stringify(updatedSelectedDays)
+          : null,
     });
+
+    // No toast here, just leave the visual indicator
+  };
+
+  const toggleDay = (day: DayOfWeek) => {
+    if (disabled) return;
+
+    const updatedDays = selectedDays.includes(day)
+      ? selectedDays.filter((d) => d !== day)
+      : [...selectedDays, day];
+
+    // Allow removing all days - we'll handle validation when updating
+    setSelectedDays(updatedDays);
+
+    setTimeout(() => {
+      // Only update if there's at least one day selected
+      if (updatedDays.length > 0) {
+        onRecurrenceChange({
+          isRecurring: localIsRecurring,
+          recurrenceType: localType,
+          recurrenceInterval: localInterval,
+          recurrenceEndDate: localEndDate || null,
+          recurrenceDaysOfWeek: JSON.stringify(updatedDays),
+        });
+      }
+      // No toast here, just don't update until days are selected
+    }, 0);
   };
 
   const toggleRecurring = () => {
@@ -92,6 +172,7 @@ const RecurringTaskSettings = ({
         recurrenceType: RecurrenceType.DAILY,
         recurrenceInterval: 1,
         recurrenceEndDate: localEndDate || null,
+        recurrenceDaysOfWeek: null,
       });
     } else {
       onRecurrenceChange({
@@ -99,6 +180,12 @@ const RecurringTaskSettings = ({
         recurrenceType: newIsRecurring ? localType : null,
         recurrenceInterval: newIsRecurring ? localInterval : null,
         recurrenceEndDate: newIsRecurring && localEndDate ? localEndDate : null,
+        recurrenceDaysOfWeek:
+          newIsRecurring &&
+          localType === RecurrenceType.WEEKLY &&
+          selectedDays.length > 0
+            ? JSON.stringify(selectedDays)
+            : null,
       });
     }
   };
@@ -147,6 +234,38 @@ const RecurringTaskSettings = ({
               ))}
             </div>
           </div>
+
+          {/* Days of week selector for weekly recurrence */}
+          {localType === RecurrenceType.WEEKLY && (
+            <div className="form-control">
+              <label className="label pb-1">
+                <span className="label-text text-sm md:text-base font-medium">
+                  On which days?
+                </span>
+                {selectedDays.length === 0 && (
+                  <span className="label-text-alt text-warning">
+                    Please select at least one day
+                  </span>
+                )}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {DAYS_OF_WEEK.map((day) => (
+                  <div
+                    key={day.key}
+                    className={`cursor-pointer text-xs sm:text-sm 
+                      ${
+                        selectedDays.includes(day.key)
+                          ? 'bg-primary text-primary-content font-medium'
+                          : 'bg-base-300 text-base-content opacity-70 hover:opacity-100'
+                      } py-1 px-2 rounded-full transition-all text-center`}
+                    onClick={() => toggleDay(day.key)}
+                  >
+                    {day.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="form-control">
             <label className="label pb-1">
@@ -234,7 +353,13 @@ const RecurringTaskSettings = ({
           <div className="bg-base-300 p-3 rounded-md">
             <div className="text-xs md:text-sm font-medium">Summary:</div>
             <div className="text-xs md:text-sm text-base-content/70 mt-1">
-              {formatRecurrencePattern(localType, localInterval)}
+              {localType === RecurrenceType.WEEKLY && selectedDays.length === 0
+                ? 'Please select at least one day of the week'
+                : formatRecurrencePattern(
+                    localType,
+                    localInterval,
+                    selectedDays,
+                  )}
               {localEndDate
                 ? `, until ${new Date(localEndDate).toLocaleDateString()}`
                 : ''}

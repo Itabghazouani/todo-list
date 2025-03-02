@@ -36,6 +36,14 @@ model Todo {
   parent    Todo?   @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   subtasks  Todo[]  @relation("ParentChild")
 
+  // New date and time fields
+  dueDate   DateTime?
+  startTime String?
+  endTime   String?
+
+  // Enhanced recurrence fields
+  recurrenceDaysOfWeek String? // Store as JSON string like "["MONDAY", "WEDNESDAY"]"
+
   // Recurring task fields
   isRecurring        Boolean   @default(false)
   recurrenceType     String?

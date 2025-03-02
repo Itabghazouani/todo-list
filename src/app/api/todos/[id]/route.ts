@@ -1,229 +1,239 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { RecurrenceType } from '@/types/todos';
-import {
-  calculateNextOccurrence,
-  prepareNextRecurringInstance,
-} from '@/utils/recurrenceUtils';
 import { auth } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
+import { calculateNextOccurrence } from '@/utils/recurrenceUtils';
+import { RecurrenceType } from '@/types/todos';
+import { Prisma } from '@prisma/client';
 
-export const GET = async (
-  request: Request,
-  { params }: { params: { id: string } },
-) => {
+interface RouteContext {
+  params: {
+    id: string;
+  };
+}
+
+export async function GET(
+  request: NextRequest,
+  { params: { id } }: RouteContext,
+) {
   try {
     const { userId } = await auth();
-
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const paramsObj = await Promise.resolve(params);
-    const id = paramsObj.id;
-
-    const todo = await prisma.todo.findFirst({
+    const todo = await prisma.todo.findUnique({
       where: {
         id,
-        userId,
-      },
-      include: {
-        subtasks: true,
-        dependencies: {
-          include: {
-            dependsOnTodo: true,
-          },
-        },
-        dependentTasks: {
-          include: {
-            todo: true,
-          },
-        },
       },
     });
 
     if (!todo) {
-      return NextResponse.json({ error: 'Todo not found' }, { status: 404 });
+      return new NextResponse('Todo not found', { status: 404 });
+    }
+
+    if (todo.userId !== userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     return NextResponse.json(todo);
   } catch (error) {
     console.error('Error fetching todo:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch todo' },
-      { status: 500 },
-    );
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
-};
+}
 
-export const PUT = async (
-  req: Request,
-  { params }: { params: { id: string } },
-) => {
+export async function PUT(
+  request: NextRequest,
+  { params: { id } }: RouteContext,
+) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Fix #1: Await params.id (even though it's not actually async)
-    const paramsObj = await Promise.resolve(params);
-    const id = paramsObj.id;
-    const data = await req.json();
-
-    // Log the update data
-    console.log('Updating todo with data:', data);
-
-    // Find the existing todo
-    const existingTodo = await prisma.todo.findFirst({
+    // Get the original todo to check ownership and handle completion
+    const originalTodo = await prisma.todo.findUnique({
       where: {
         id,
-        userId,
       },
     });
 
-    if (!existingTodo) {
-      return NextResponse.json({ error: 'Todo not found' }, { status: 404 });
+    if (!originalTodo) {
+      return new NextResponse('Todo not found', { status: 404 });
     }
 
-    // Handle recurring task settings
-    let recurringFields = {};
-    if (data.isRecurring) {
-      // If updating to be recurring, properly handle the recurring fields
-      recurringFields = {
-        isRecurring: true,
-        recurrenceType: data.recurrenceType,
-        recurrenceInterval: data.recurrenceInterval,
-        recurrenceEndDate: data.recurrenceEndDate
-          ? new Date(data.recurrenceEndDate)
-          : null,
-        // Calculate next occurrence if not already set
-        nextOccurrence:
-          data.nextOccurrence ||
-          calculateNextOccurrence(data.recurrenceType, data.recurrenceInterval),
-      };
-    } else {
-      // If removing recurring status, clear all recurring fields
-      recurringFields = {
-        isRecurring: false,
-        recurrenceType: null,
-        recurrenceInterval: null,
-        recurrenceEndDate: null,
-        nextOccurrence: null,
-      };
+    if (originalTodo.userId !== userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Special handling for recurring tasks being completed
-    let completionUpdate = {};
-    if (
-      data.completed === true &&
-      existingTodo.completed === false &&
-      existingTodo.isRecurring
-    ) {
-      const now = new Date();
-      const typedExistingTodo = {
-        ...existingTodo,
-        recurrenceType: existingTodo.recurrenceType as RecurrenceType | null,
-      };
-      const nextInstanceData = prepareNextRecurringInstance(
-        typedExistingTodo,
-        now,
-      );
+    const requestData = await request.json();
+    console.log('Received update data:', requestData);
 
-      if (nextInstanceData) {
-        completionUpdate = {
-          lastCompletedAt: now,
-          nextOccurrence: nextInstanceData.nextOccurrence,
-        };
-      }
-    }
-
-    // Fix #2: Remove fields that shouldn't be updated
-    // Create a clean data object without fields Prisma won't accept
+    // Remove fields that can't be updated
     const {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      id: _id, // Remove these fields from data
+      id: _id,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       userId: _userId,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       createdAt: _createdAt,
-      ...updateData
-    } = data;
+      ...data
+    } = requestData;
+
+    console.log('Cleaned update data (removed immutable fields):', data);
+
+    // Process date fields properly for Prisma
+    const updateData: Prisma.TodoUpdateInput = { ...data };
+
+    // Convert string dates to Date objects for Prisma
+    if (typeof data.dueDate === 'string' && data.dueDate) {
+      try {
+        // Ensure proper ISO format by adding time if it's only a date
+        if (data.dueDate.length === 10) {
+          // YYYY-MM-DD format
+          updateData.dueDate = new Date(`${data.dueDate}T12:00:00Z`);
+        } else {
+          updateData.dueDate = new Date(data.dueDate);
+        }
+        console.log(
+          `Converted dueDate from ${
+            data.dueDate
+          } to ${updateData.dueDate.toISOString()}`,
+        );
+      } catch (e) {
+        console.error('Error converting dueDate:', e);
+        return new NextResponse('Invalid date format for dueDate', {
+          status: 400,
+        });
+      }
+    } else if (data.dueDate === null) {
+      updateData.dueDate = null;
+    }
+
+    // Handle recurrence end date
+    if (typeof data.recurrenceEndDate === 'string' && data.recurrenceEndDate) {
+      try {
+        // Ensure proper ISO format by adding time if it's only a date
+        if (data.recurrenceEndDate.length === 10) {
+          // YYYY-MM-DD format
+          updateData.recurrenceEndDate = new Date(
+            `${data.recurrenceEndDate}T12:00:00Z`,
+          );
+        } else {
+          updateData.recurrenceEndDate = new Date(data.recurrenceEndDate);
+        }
+      } catch (e) {
+        console.error('Error converting recurrenceEndDate:', e);
+        return new NextResponse('Invalid date format for recurrenceEndDate', {
+          status: 400,
+        });
+      }
+    } else if (data.recurrenceEndDate === null) {
+      updateData.recurrenceEndDate = null;
+    }
+
+    // Special handling for completion status change - manage recurring tasks
+    const isCompletionStatusChanged = originalTodo.completed !== data.completed;
+
+    // If the todo is completed and it's recurring, prepare for next occurrence
+    if (isCompletionStatusChanged && data.completed && data.isRecurring) {
+      const completedAt = new Date();
+
+      // Calculate next occurrence
+      if (data.recurrenceType && data.recurrenceInterval) {
+        const nextOccurrence = calculateNextOccurrence(
+          data.recurrenceType as RecurrenceType,
+          data.recurrenceInterval,
+          completedAt,
+          data.recurrenceDaysOfWeek,
+        );
+
+        console.log(
+          `Calculated next occurrence: ${nextOccurrence.toISOString()}`,
+        );
+
+        // Check if there's a recurrence end date and if next occurrence is after it
+        const recurrenceEndDate = updateData.recurrenceEndDate as
+          | Date
+          | null
+          | undefined;
+        if (recurrenceEndDate && nextOccurrence > recurrenceEndDate) {
+          console.log('Next occurrence is after end date, no more occurrences');
+          // No more occurrences
+        } else {
+          updateData.nextOccurrence = nextOccurrence;
+          updateData.lastCompletedAt = completedAt;
+        }
+      }
+    }
+
+    console.log('Final update data being sent to Prisma:', updateData);
 
     // Update the todo with all changes
     const updatedTodo = await prisma.todo.update({
       where: {
         id,
       },
-      data: {
-        ...updateData,
-        ...recurringFields,
-        ...completionUpdate,
-      },
+      data: updateData,
     });
 
-    console.log(
-      'Updated todo with recurring properties:',
-      Object.entries(updatedTodo)
-        .filter(([key]) =>
-          [
-            'isRecurring',
-            'recurrenceType',
-            'recurrenceInterval',
-            'nextOccurrence',
-            'recurrenceEndDate',
-          ].includes(key),
-        )
-        .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {}),
-    );
-
+    console.log('Todo updated successfully:', updatedTodo);
     return NextResponse.json(updatedTodo);
   } catch (error) {
     console.error('Error updating todo:', error);
-    return NextResponse.json(
-      { error: 'Failed to update todo' },
-      { status: 500 },
-    );
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
-};
+}
 
-export const DELETE = async (
-  req: Request,
-  { params }: { params: { id: string } },
-) => {
+export async function DELETE(
+  request: NextRequest,
+  { params: { id } }: RouteContext,
+) {
   try {
-    const paramsObj = await Promise.resolve(params);
-    const id = paramsObj.id;
     const { userId } = await auth();
-
     if (!userId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const existingTodo = await prisma.todo.findUnique({
-      where: { id },
-      include: {
-        subtasks: true,
+    const todo = await prisma.todo.findUnique({
+      where: {
+        id,
       },
     });
 
-    if (!existingTodo) {
+    if (!todo) {
       return new NextResponse('Todo not found', { status: 404 });
     }
 
-    if (existingTodo.userId !== userId) {
+    if (todo.userId !== userId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    if (existingTodo.subtasks && existingTodo.subtasks.length > 0) {
-      await prisma.todo.deleteMany({
+    // Get all subtasks to delete them as well
+    const subtasks = await prisma.todo.findMany({
+      where: {
+        parentId: id,
+      },
+    });
+
+    // Start a transaction to delete subtasks and the main todo
+    await prisma.$transaction(async (tx) => {
+      // Delete subtasks first
+      for (const subtask of subtasks) {
+        await tx.todo.delete({
+          where: {
+            id: subtask.id,
+          },
+        });
+      }
+
+      // Delete the main todo
+      await tx.todo.delete({
         where: {
-          parentId: id,
+          id,
         },
       });
-    }
-
-    await prisma.todo.delete({
-      where: { id },
     });
 
     return new NextResponse(null, { status: 204 });
@@ -231,4 +241,4 @@ export const DELETE = async (
     console.error('Error deleting todo:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
-};
+}

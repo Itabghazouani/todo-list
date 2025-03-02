@@ -13,6 +13,8 @@ import {
   RepeatIcon,
   ListTodo,
   Link,
+  Calendar,
+  Clock,
 } from 'lucide-react';
 import Modal from '../Modal';
 import {
@@ -140,6 +142,30 @@ export const TodoCard = ({
       return;
     }
 
+    if (
+      editTodoData.isRecurring &&
+      editTodoData.recurrenceType === RecurrenceType.WEEKLY
+    ) {
+      if (
+        !editTodoData.recurrenceDaysOfWeek ||
+        editTodoData.recurrenceDaysOfWeek === '[]'
+      ) {
+        addToast(
+          'Please select at least one day of the week for weekly recurrence',
+          'warning',
+        );
+        return;
+      }
+    }
+
+    // Validate time inputs if both are present
+    if (editTodoData.startTime && editTodoData.endTime) {
+      if (editTodoData.startTime >= editTodoData.endTime) {
+        addToast('End time must be after start time', 'warning');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const dataToUpdate = {
@@ -154,6 +180,11 @@ export const TodoCard = ({
         recurrenceEndDate: editTodoData.isRecurring
           ? editTodoData.recurrenceEndDate
           : null,
+        recurrenceDaysOfWeek:
+          editTodoData.isRecurring &&
+          editTodoData.recurrenceType === RecurrenceType.WEEKLY
+            ? editTodoData.recurrenceDaysOfWeek
+            : null,
       };
       onUpdate(dataToUpdate);
       setIsEditModalOpen(false);
@@ -203,6 +234,7 @@ export const TodoCard = ({
     recurrenceType?: RecurrenceType | null;
     recurrenceInterval?: number | null;
     recurrenceEndDate?: string | null;
+    recurrenceDaysOfWeek?: string | null;
   }) => {
     setEditTodoData({
       ...editTodoData,
@@ -212,6 +244,7 @@ export const TodoCard = ({
         | undefined,
       recurrenceInterval: recurrenceData.recurrenceInterval,
       recurrenceEndDate: recurrenceData.recurrenceEndDate,
+      recurrenceDaysOfWeek: recurrenceData.recurrenceDaysOfWeek,
     });
   };
 
@@ -219,16 +252,56 @@ export const TodoCard = ({
     setSubtasks(updatedSubtasks);
   };
 
-  const recurrencePattern = todo.isRecurring
-    ? formatRecurrencePattern(
-        todo.recurrenceType as RecurrenceType,
-        todo.recurrenceInterval,
-      )
-    : null;
+  // Format date and time for display
+  const formatDate = (dateStr?: string | Date | null): string => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString();
+    } catch (error) {
+      console.error('Error :', error);
+      return '';
+    }
+  };
+
+  const formatTimeRange = (
+    startTime?: string | null,
+    endTime?: string | null,
+  ): string => {
+    if (!startTime) return '';
+    if (!endTime) return startTime;
+    return `${startTime} - ${endTime}`;
+  };
+
+  // Get date string for the date input
+  const getDateInputValue = (dateStr?: string | Date | null): string => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      console.error('Error :', error);
+      return '';
+    }
+  };
+
+  const recurrencePattern =
+    todo.isRecurring && todo.recurrenceType
+      ? formatRecurrencePattern(
+          todo.recurrenceType as RecurrenceType,
+          todo.recurrenceInterval,
+          todo.recurrenceDaysOfWeek
+            ? JSON.parse(todo.recurrenceDaysOfWeek)
+            : undefined,
+        )
+      : null;
 
   const subtaskCount = subtasks.length;
   const completedSubtaskCount = subtasks.filter((st) => st.completed).length;
   const hasSubtasks = subtaskCount > 0;
+
+  const hasDueDate = !!todo.dueDate;
+  const hasTimeSet = !!todo.startTime;
 
   return (
     <>
@@ -314,6 +387,26 @@ export const TodoCard = ({
                   >
                     {todo.desc}
                   </p>
+
+                  {/* Date and Time Display */}
+                  {(hasDueDate || hasTimeSet) && (
+                    <div className="flex items-center gap-2 text-xs text-base-content/70 mt-1">
+                      {hasDueDate && (
+                        <div className="flex items-center gap-1">
+                          <Calendar size={12} />
+                          <span>{formatDate(todo.dueDate)}</span>
+                        </div>
+                      )}
+                      {hasTimeSet && (
+                        <div className="flex items-center gap-1">
+                          <Clock size={12} />
+                          <span>
+                            {formatTimeRange(todo.startTime, todo.endTime)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Badges */}
                   <div className="flex flex-wrap gap-1 mt-1">
@@ -460,6 +553,71 @@ export const TodoCard = ({
             />
           </div>
 
+          {/* Date and Time Fields */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Due Date & Time</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/70">
+                  <Calendar size={16} />
+                </span>
+                <input
+                  type="date"
+                  value={getDateInputValue(editTodoData.dueDate)}
+                  onChange={(e) =>
+                    setEditTodoData({
+                      ...editTodoData,
+                      dueDate: e.target.value || null,
+                    })
+                  }
+                  className="input input-bordered input-sm sm:input-md pl-10 w-full"
+                  min={new Date().toISOString().split('T')[0]}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/70">
+                    <Clock size={16} />
+                  </span>
+                  <input
+                    type="time"
+                    value={editTodoData.startTime || ''}
+                    onChange={(e) =>
+                      setEditTodoData({
+                        ...editTodoData,
+                        startTime: e.target.value || null,
+                      })
+                    }
+                    className="input input-bordered input-sm sm:input-md pl-10 w-full"
+                    placeholder="Start"
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/70">
+                    <Clock size={16} />
+                  </span>
+                  <input
+                    type="time"
+                    value={editTodoData.endTime || ''}
+                    onChange={(e) =>
+                      setEditTodoData({
+                        ...editTodoData,
+                        endTime: e.target.value || null,
+                      })
+                    }
+                    className="input input-bordered input-sm sm:input-md pl-10 w-full"
+                    placeholder="End"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="form-control">
             <label className="label">
               <span className="label-text">Category</span>
@@ -535,6 +693,7 @@ export const TodoCard = ({
               recurrenceType={editTodoData.recurrenceType}
               recurrenceInterval={editTodoData.recurrenceInterval}
               recurrenceEndDate={editTodoData.recurrenceEndDate}
+              recurrenceDaysOfWeek={editTodoData.recurrenceDaysOfWeek}
               onRecurrenceChange={handleRecurrenceChange}
               disabled={isSubmitting}
             />

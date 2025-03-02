@@ -11,6 +11,16 @@ export enum RecurrenceType {
   CUSTOM = 'CUSTOM',
 }
 
+export enum DayOfWeek {
+  MONDAY = 'MONDAY',
+  TUESDAY = 'TUESDAY',
+  WEDNESDAY = 'WEDNESDAY',
+  THURSDAY = 'THURSDAY',
+  FRIDAY = 'FRIDAY',
+  SATURDAY = 'SATURDAY',
+  SUNDAY = 'SUNDAY',
+}
+
 export interface ITodoBase {
   id: string;
   desc: string;
@@ -21,10 +31,16 @@ export interface ITodoBase {
   isSubtask?: boolean;
   parentId?: string | null;
 
+  // New date and time fields
+  dueDate?: Date | string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+
   isRecurring?: boolean;
   recurrenceType?: RecurrenceType | null;
   recurrenceInterval?: number | null;
   recurrenceEndDate?: Date | string | null;
+  recurrenceDaysOfWeek?: string | null; // JSON string of weekdays
   nextOccurrence?: Date | string | null;
   lastCompletedAt?: Date | string | null;
 }
@@ -50,10 +66,16 @@ export interface ICreateTodoInput {
   isSubtask?: boolean;
   parentId?: string;
 
+  // New date and time fields
+  dueDate?: Date | string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+
   isRecurring?: boolean;
   recurrenceType?: RecurrenceType;
   recurrenceInterval?: number;
   recurrenceEndDate?: Date | string;
+  recurrenceDaysOfWeek?: string | null;
 }
 
 export interface IDependency {

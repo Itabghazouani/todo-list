@@ -6,6 +6,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
 import AppHeader from '@/components/Header';
+import RecurringTodoUpdater from '@/components/todo/RecurringTodoUpdater';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -49,6 +50,7 @@ const RootLayout = ({
           >
             <ToastProvider>
               <AppHeader />
+              <RecurringTodoUpdater />
               <main className="min-h-[calc(100vh-4rem)]  w-full max-w-full overflow-x-hidden">
                 {children}
               </main>

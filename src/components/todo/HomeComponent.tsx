@@ -8,15 +8,20 @@ import ClearTodos from '@/components/todo/ClearTodos';
 import Toast from '@/components/ui/Toast';
 import { ITodo } from '@/types/todos';
 import { useToastStore } from '@/store/toastStore';
-import { LayoutGrid, List } from 'lucide-react';
+import { LayoutGrid, List, Calendar } from 'lucide-react';
 import { sortTodosByPriority } from '@/utils/todoUtils';
 import AddTodo from './AddTodo';
+import Link from 'next/link';
 
 interface IHomeComponentProps {
   initialTodos: ITodo[];
+  isTodayView?: boolean;
 }
 
-const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
+const HomeComponent = ({
+  initialTodos,
+  isTodayView = true,
+}: IHomeComponentProps) => {
   const [todos, setTodos] = useState<ITodo[]>(initialTodos);
   const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
   const { addToast } = useToastStore();
@@ -27,6 +32,7 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
   }, [initialTodos]);
 
   const handleTodoAdded = (newTodo: ITodo) => {
+    // For the general home page, always add the new todo
     setTodos((prev) => {
       return sortTodosByPriority([...prev, newTodo]);
     });
@@ -34,11 +40,73 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
   };
 
   const handleUpdateTodo = (updatedTodo: ITodo) => {
+    // Check if this todo still meets the criteria for display on home page
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const dayOfWeek = today.getDay();
+    const dayMap = {
+      0: 'SUNDAY',
+      1: 'MONDAY',
+      2: 'TUESDAY',
+      3: 'WEDNESDAY',
+      4: 'THURSDAY',
+      5: 'FRIDAY',
+      6: 'SATURDAY',
+    };
+    const todayDayOfWeek = dayMap[dayOfWeek as keyof typeof dayMap];
+
+    // Check if the updated todo should still be displayed
+    // Case 1: General task with no date/time info
+    const isGeneralTask =
+      !updatedTodo.dueDate &&
+      !updatedTodo.nextOccurrence &&
+      !updatedTodo.isRecurring;
+
+    // Case 2: Task due today
+    const isDueToday = updatedTodo.dueDate
+      ? new Date(updatedTodo.dueDate).toISOString().split('T')[0] === todayStr
+      : false;
+
+    // Case 3: Recurring task with next occurrence today
+    const hasOccurrenceToday = updatedTodo.nextOccurrence
+      ? new Date(updatedTodo.nextOccurrence).toISOString().split('T')[0] ===
+        todayStr
+      : false;
+
+    // Case 4: Weekly recurring task on today's day of week
+    let matchesDayOfWeek = false;
+    if (
+      updatedTodo.isRecurring &&
+      updatedTodo.recurrenceType === 'WEEKLY' &&
+      updatedTodo.recurrenceDaysOfWeek
+    ) {
+      try {
+        const daysOfWeek = JSON.parse(updatedTodo.recurrenceDaysOfWeek);
+        matchesDayOfWeek = daysOfWeek.includes(todayDayOfWeek);
+      } catch (e) {
+        console.error('Error parsing recurrenceDaysOfWeek:', e);
+      }
+    }
+
+    // Should the todo remain visible?
+    const shouldRemainVisible =
+      isGeneralTask || isDueToday || hasOccurrenceToday || matchesDayOfWeek;
+
+    // Update or remove from state based on criteria
     setTodos((currentTodos) => {
-      const updatedTodos = currentTodos.map((todo) =>
-        todo.id === updatedTodo.id ? updatedTodo : todo,
-      );
-      return sortTodosByPriority(updatedTodos);
+      if (shouldRemainVisible) {
+        // Update the todo in the list
+        const updatedTodos = currentTodos.map((todo) =>
+          todo.id === updatedTodo.id ? updatedTodo : todo,
+        );
+        return sortTodosByPriority(updatedTodos);
+      } else {
+        // Remove the todo from the list
+        const filteredTodos = currentTodos.filter(
+          (todo) => todo.id !== updatedTodo.id,
+        );
+        return sortTodosByPriority(filteredTodos);
+      }
     });
   };
 
@@ -50,12 +118,20 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
 
   const handleClearCompleted = async () => {
     try {
+      // Get IDs of completed todos in the current view
+      const completedTodoIds = todos
+        .filter((todo) => todo.completed)
+        .map((todo) => todo.id);
+
       const response = await fetch('/api/todos/clear', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ type: 'completed' }),
+        body: JSON.stringify({
+          type: 'completed',
+          todoIds: completedTodoIds,
+        }),
       });
 
       if (!response.ok) {
@@ -72,12 +148,18 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
 
   const handleClearAll = async () => {
     try {
+      // Get IDs of all todos in the current view
+      const allTodoIds = todos.map((todo) => todo.id);
+
       const response = await fetch('/api/todos/clear', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ type: 'all' }),
+        body: JSON.stringify({
+          type: 'specific',
+          todoIds: allTodoIds,
+        }),
       });
 
       if (!response.ok) {
@@ -94,16 +176,9 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
 
   const handleClearNonRecurring = async () => {
     try {
-      // Optionally, you could first fetch the latest todos from the server
-      // to ensure you have the most up-to-date state
-      const latestTodosResponse = await fetch('/api/todos');
-      if (!latestTodosResponse.ok) {
-        throw new Error('Failed to fetch latest todos');
-      }
-      const latestTodos = (await latestTodosResponse.json()) as ITodo[];
-
-      // Now use the latest todos to determine which ones are recurring
-      const recurringTodoIds = latestTodos
+      // Get IDs of recurring todos in the current view
+      const visibleTodoIds = todos.map((todo) => todo.id);
+      const recurringTodoIds = todos
         .filter((todo) => todo.isRecurring)
         .map((todo) => todo.id);
 
@@ -113,7 +188,8 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          type: 'non-recurring',
+          type: 'non-recurring-in-view',
+          visibleTodoIds: visibleTodoIds,
           keepIds: recurringTodoIds,
         }),
       });
@@ -122,11 +198,8 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
         throw new Error('Failed to clear non-recurring todos');
       }
 
-      // Update local state based on the recurring IDs from the server
-      setTodos((prevTodos) =>
-        prevTodos.filter((todo) => recurringTodoIds.includes(todo.id)),
-      );
-
+      // Update local state to keep only recurring todos
+      setTodos((prevTodos) => prevTodos.filter((todo) => todo.isRecurring));
       addToast('Non-recurring todos cleared successfully', 'success');
     } catch (error) {
       console.error('Error clearing non-recurring todos:', error);
@@ -138,6 +211,16 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
   const recurringCount = todos.filter((todo) => todo.isRecurring).length;
   const totalCount = todos.length;
 
+  // Format today's date for display
+  const formatTodayDate = () => {
+    return new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-base-100">
       <Toast />
@@ -145,9 +228,23 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
         <div className="max-w-4xl mx-auto">
           <div className="card bg-base-200 shadow-lg mb-4 sm:mb-8 p-4 sm:p-6">
             <div className="flex flex-col gap-3 sm:gap-4">
-              <h1 className="text-2xl sm:text-3xl font-bold text-base-content">
-                My Todos
-              </h1>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-base-content">
+                    {isTodayView ? "Today's Tasks & General Todos" : 'My Todos'}
+                  </h1>
+                  {isTodayView && (
+                    <p className="text-sm sm:text-base text-base-content/70 mt-1">
+                      {formatTodayDate()}
+                    </p>
+                  )}
+                </div>
+                <Link href="/calendar" className="btn btn-sm btn-outline gap-1">
+                  <Calendar size={16} />
+                  <span className="hidden sm:inline">View Calendar</span>
+                </Link>
+              </div>
+
               <p className="text-sm sm:text-base text-base-content/70">
                 Organize your tasks using the Eisenhower Matrix
               </p>
@@ -193,7 +290,9 @@ const HomeComponent = ({ initialTodos }: IHomeComponentProps) => {
               {todos.length === 0 ? (
                 <div className="text-center py-4 sm:py-6">
                   <p className="text-base sm:text-lg opacity-70">
-                    No todos yet. Add some tasks to get started!
+                    {isTodayView
+                      ? 'No tasks for today or general todos. Add some tasks or check your calendar for upcoming tasks!'
+                      : 'No todos yet. Add some tasks to get started!'}
                   </p>
                 </div>
               ) : viewMode === 'list' ? (

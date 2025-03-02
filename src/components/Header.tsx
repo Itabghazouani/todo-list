@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   CheckSquare,
+  Calendar,
 } from 'lucide-react';
 import ThemeSwitcher from '@/components/ui/ThemeSwitcher';
 
@@ -32,6 +33,7 @@ const AppHeader = () => {
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Dashboard', href: '/dashboard', icon: Activity },
+    { name: 'Calendar', href: '/calendar', icon: Calendar },
     { name: 'Matrix Guide', href: '/matrix', icon: LayoutGrid },
     { name: 'Themes', href: '/themes', icon: PaintBucket },
   ];

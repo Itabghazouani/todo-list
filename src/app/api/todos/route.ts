@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { calculateNextOccurrence } from '@/utils/recurrenceUtils';
+import { RecurrenceType } from '@/types/todos';
 
 export const POST = async (request: Request) => {
   try {
@@ -12,23 +13,70 @@ export const POST = async (request: Request) => {
     }
 
     const data = await request.json();
+    console.log('Creating todo with data:', data);
 
-    let recurringFields = {};
-    if (data.isRecurring && data.recurrenceType && data.recurrenceInterval) {
-      const nextOccurrence = calculateNextOccurrence(
-        data.recurrenceType,
-        data.recurrenceInterval,
+    // Process date field if it exists
+    let dueDate = null;
+    if (data.dueDate) {
+      // Set to noon to avoid timezone issues
+      dueDate = new Date(`${data.dueDate.split('T')[0]}T12:00:00Z`);
+      console.log(
+        `Parsed due date: ${dueDate.toISOString()} from input: ${data.dueDate}`,
       );
+    }
+
+    // Handle recurring fields
+    let recurringFields = {};
+    if (data.isRecurring && data.recurrenceType) {
+      console.log(
+        `Setting up recurring task, type: ${data.recurrenceType}, interval: ${data.recurrenceInterval}`,
+      );
+
+      if (data.recurrenceDaysOfWeek) {
+        console.log(`With days of week: ${data.recurrenceDaysOfWeek}`);
+      }
+
+      // For weekly recurrence with specific days, calculate next occurrence more carefully
+      // For the first occurrence, use either dueDate or current date as base
+      const baseDate = dueDate || new Date();
+      baseDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+
+      console.log(
+        `Using base date for recurrence calculation: ${baseDate.toISOString()}`,
+      );
+
+      const nextOccurrence = calculateNextOccurrence(
+        data.recurrenceType as RecurrenceType,
+        data.recurrenceInterval || 1,
+        baseDate,
+        data.recurrenceDaysOfWeek,
+      );
+
+      console.log(
+        `Calculated next occurrence: ${nextOccurrence.toISOString()} for recurring todo`,
+      );
+
+      let recurrenceEndDate = null;
+      if (data.recurrenceEndDate) {
+        recurrenceEndDate = new Date(
+          `${data.recurrenceEndDate.split('T')[0]}T12:00:00Z`,
+        );
+        console.log(
+          `Parsed recurrence end date: ${recurrenceEndDate.toISOString()}`,
+        );
+      }
 
       recurringFields = {
         isRecurring: true,
         recurrenceType: data.recurrenceType,
-        recurrenceInterval: data.recurrenceInterval,
+        recurrenceInterval: data.recurrenceInterval || 1,
         nextOccurrence,
-        recurrenceEndDate: data.recurrenceEndDate || null,
+        recurrenceEndDate,
+        recurrenceDaysOfWeek: data.recurrenceDaysOfWeek || null,
       };
     }
-    console.log('Creating todo with data:', data);
+
+    // Handle subtask fields
     const subtaskFields = data.isSubtask
       ? {
           isSubtask: true,
@@ -36,6 +84,14 @@ export const POST = async (request: Request) => {
         }
       : {};
 
+    // Handle date and time fields
+    const dateTimeFields = {
+      dueDate,
+      startTime: data.startTime || null,
+      endTime: data.endTime || null,
+    };
+
+    // Create the todo with all fields
     const todo = await prisma.todo.create({
       data: {
         desc: data.desc,
@@ -44,8 +100,10 @@ export const POST = async (request: Request) => {
         userId,
         ...recurringFields,
         ...subtaskFields,
+        ...dateTimeFields,
       },
     });
+
     console.log('Created todo:', todo);
     console.log(
       'Created recurring todo with properties:',
@@ -57,10 +115,15 @@ export const POST = async (request: Request) => {
             'recurrenceInterval',
             'nextOccurrence',
             'recurrenceEndDate',
+            'recurrenceDaysOfWeek',
+            'dueDate',
+            'startTime',
+            'endTime',
           ].includes(key),
         )
         .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {}),
     );
+
     return NextResponse.json(todo, { status: 201 });
   } catch (error) {
     console.error('Error creating todo:', error);

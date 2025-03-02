@@ -10,28 +10,41 @@ export const DELETE = async (request: NextRequest) => {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { type, keepIds } = await request.json();
+    const { type, keepIds, todoIds, visibleTodoIds } = await request.json();
 
     switch (type) {
       case 'completed':
-        await prisma.todo.deleteMany({
-          where: {
-            userId,
-            completed: true,
-            isSubtask: true,
-          },
-        });
+        if (todoIds && Array.isArray(todoIds)) {
+          // Delete specific completed todos by ID
+          await prisma.todo.deleteMany({
+            where: {
+              userId,
+              id: { in: todoIds },
+              completed: true,
+            },
+          });
+        } else {
+          // Legacy behavior: delete all completed todos
+          await prisma.todo.deleteMany({
+            where: {
+              userId,
+              completed: true,
+              isSubtask: true,
+            },
+          });
 
-        await prisma.todo.deleteMany({
-          where: {
-            userId,
-            completed: true,
-            isSubtask: false,
-          },
-        });
+          await prisma.todo.deleteMany({
+            where: {
+              userId,
+              completed: true,
+              isSubtask: false,
+            },
+          });
+        }
         break;
 
       case 'non-recurring':
+        // Original implementation for all non-recurring todos
         if (keepIds && Array.isArray(keepIds)) {
           // First, delete non-recurring subtasks not in keepIds
           await prisma.todo.deleteMany({
@@ -40,9 +53,7 @@ export const DELETE = async (request: NextRequest) => {
               isSubtask: true,
               isRecurring: false,
               NOT: {
-                id: {
-                  in: keepIds,
-                },
+                id: { in: keepIds },
               },
             },
           });
@@ -54,49 +65,64 @@ export const DELETE = async (request: NextRequest) => {
               isSubtask: false,
               isRecurring: false,
               NOT: {
-                id: {
-                  in: keepIds,
-                },
+                id: { in: keepIds },
               },
             },
           });
         } else {
-          // First, delete all non-recurring subtasks
+          // Delete all non-recurring todos
           await prisma.todo.deleteMany({
             where: {
               userId,
-              isSubtask: true,
-              isRecurring: false,
-            },
-          });
-
-          // Then delete all non-recurring parent tasks
-          await prisma.todo.deleteMany({
-            where: {
-              userId,
-              isSubtask: false,
               isRecurring: false,
             },
           });
         }
         break;
 
-      case 'all':
-        // First, delete all subtasks
-        await prisma.todo.deleteMany({
-          where: {
-            userId,
-            isSubtask: true,
-          },
-        });
+      case 'non-recurring-in-view':
+        // New implementation for non-recurring todos in the current view
+        if (
+          visibleTodoIds &&
+          Array.isArray(visibleTodoIds) &&
+          keepIds &&
+          Array.isArray(keepIds)
+        ) {
+          // Delete non-recurring todos that are in the visible set but not in keepIds
+          await prisma.todo.deleteMany({
+            where: {
+              userId,
+              id: { in: visibleTodoIds },
+              isRecurring: false,
+              NOT: {
+                id: { in: keepIds },
+              },
+            },
+          });
+        }
+        break;
 
-        // Then delete all parent tasks
+      case 'all':
+        // Delete all todos for the user
         await prisma.todo.deleteMany({
           where: {
             userId,
-            isSubtask: false,
           },
         });
+        break;
+
+      case 'specific':
+        // Delete specific todos by ID
+        if (todoIds && Array.isArray(todoIds)) {
+          await prisma.todo.deleteMany({
+            where: {
+              userId,
+              id: { in: todoIds },
+            },
+          });
+        } else {
+          return new NextResponse('Todo IDs are required', { status: 400 });
+        }
         break;
 
       default:
