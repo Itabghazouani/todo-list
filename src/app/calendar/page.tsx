@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { ITodo, ITodoBase } from '@/types/todos';
@@ -8,7 +8,23 @@ import { Calendar as CalendarIcon, Loader2, Plus } from 'lucide-react';
 import CalendarComponent from '@/components/calendar/Calendar';
 import { AddTodo, TodoCard } from '@/components/todo';
 
-export default function CalendarPage() {
+// Loading component for Suspense fallback
+function CalendarLoading() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <CalendarIcon className="text-primary" />
+        Calendar View
+      </h1>
+      <div className="flex justify-center py-12">
+        <Loader2 className="animate-spin h-8 w-8 text-primary" />
+      </div>
+    </div>
+  );
+}
+
+// Inner component that uses searchParams
+function CalendarContent() {
   const searchParams = useSearchParams();
   const dateParam = searchParams.get('date');
 
@@ -128,7 +144,6 @@ export default function CalendarPage() {
   };
 
   // Handle new todo added
-  // Handle new todo added
   const handleTodoAdded = () => {
     // Refresh the todo list to include the new todo
     const fetchTodosForDate = async () => {
@@ -245,5 +260,14 @@ function AddTodoButton({
         </div>
       )}
     </>
+  );
+}
+
+// Main export with Suspense boundary
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={<CalendarLoading />}>
+      <CalendarContent />
+    </Suspense>
   );
 }
