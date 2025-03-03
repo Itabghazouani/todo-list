@@ -11,13 +11,13 @@ import { AddTodo, TodoCard } from '@/components/todo';
 // Loading component for Suspense fallback
 function CalendarLoading() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
         <CalendarIcon className="text-primary" />
         Calendar View
       </h1>
-      <div className="flex justify-center py-12">
-        <Loader2 className="animate-spin h-8 w-8 text-primary" />
+      <div className="flex justify-center py-8 sm:py-12">
+        <Loader2 className="animate-spin h-6 w-6 sm:h-8 sm:w-8 text-primary" />
       </div>
     </div>
   );
@@ -164,28 +164,28 @@ function CalendarContent() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
         <CalendarIcon className="text-primary" />
         Calendar View
       </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar column */}
-        <div className="col-span-1">
+      <div className="lg:grid lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Calendar column - Always visible */}
+        <div className="mb-4 lg:mb-0 lg:col-span-1">
           <CalendarComponent />
         </div>
 
         {/* Todos for selected date column */}
-        <div className="col-span-1 lg:col-span-2">
-          <div className="bg-base-100 rounded-box p-4 shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">
-                Todos for {formatDate(selectedDate)}
+        <div className="lg:col-span-2">
+          <div className="bg-base-100 rounded-box p-3 sm:p-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 gap-2 sm:gap-0">
+              <h2 className="text-lg sm:text-xl font-semibold">
+                {formatDate(selectedDate)}
               </h2>
 
               {/* Custom Add Todo Component with pre-filled date */}
-              <div className="w-auto">
+              <div className="w-full sm:w-auto">
                 <AddTodoButton
                   selectedDate={selectedDateStr}
                   onTodoAdded={handleTodoAdded}
@@ -194,11 +194,11 @@ function CalendarContent() {
             </div>
 
             {isLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="animate-spin h-8 w-8 text-primary" />
+              <div className="flex justify-center py-8 sm:py-12">
+                <Loader2 className="animate-spin h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
             ) : todos.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {todos.map((todo) => (
                   <TodoCard
                     key={todo.id}
@@ -209,9 +209,11 @@ function CalendarContent() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 text-base-content/70">
-                <p className="text-lg font-medium">No todos for this day</p>
-                <p className="mt-2">
+              <div className="text-center py-8 sm:py-12 text-base-content/70">
+                <p className="text-base sm:text-lg font-medium">
+                  No todos for this day
+                </p>
+                <p className="mt-2 text-sm sm:text-base">
                   Click the &quot;Add Todo&quot; button above to create a todo
                   for this day.
                 </p>
@@ -238,7 +240,7 @@ function AddTodoButton({
     <>
       <button
         onClick={() => setModalOpen(true)}
-        className="btn btn-primary btn-sm gap-1"
+        className="btn btn-primary btn-sm w-full sm:w-auto gap-1"
       >
         <Plus size={16} />
         Add Todo

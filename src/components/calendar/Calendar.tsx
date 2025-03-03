@@ -40,6 +40,8 @@ const MONTH_NAMES = [
 
 // Day names array to avoid locale issues
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// Shorter day names for very small screens
+const SHORT_DAY_NAMES = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 const CalendarComponent = () => {
   const router = useRouter();
@@ -187,15 +189,16 @@ const CalendarComponent = () => {
   const renderCalendarDays = () => {
     const calendarDays = [];
 
-    // Day names row
+    // Day names row - use different sets based on screen size
     calendarDays.push(
       <div key="daynames" className="grid grid-cols-7 mb-1">
-        {DAY_NAMES.map((name) => (
+        {DAY_NAMES.map((name, index) => (
           <div
             key={name}
             className="text-center text-xs py-1 font-medium text-base-content/70"
           >
-            {name}
+            <span className="hidden sm:inline">{name}</span>
+            <span className="sm:hidden">{SHORT_DAY_NAMES[index]}</span>
           </div>
         ))}
       </div>,
@@ -215,7 +218,7 @@ const CalendarComponent = () => {
         <div
           key={`day-${day}`}
           className={`
-            text-center p-1 cursor-pointer hover:bg-base-200 rounded-md transition-colors relative
+            text-center p-0.5 sm:p-1 cursor-pointer hover:bg-base-200 rounded-md transition-colors relative
             ${
               isSelectedDate(day)
                 ? 'bg-primary text-primary-content font-bold'
@@ -229,33 +232,47 @@ const CalendarComponent = () => {
           `}
           onClick={() => handleDateSelect(day)}
         >
-          <span className="text-sm">{day}</span>
+          <span className="text-xs sm:text-sm">{day}</span>
 
-          {/* Todo markers */}
+          {/* Todo markers - simplified on very small screens */}
           {todoCount > 0 && (
-            <div className="flex justify-center mt-1 space-x-0.5">
-              {todoCount <= 3 ? (
-                // For 1-3 todos, show individual dots
-                Array.from({ length: todoCount }).map((_, i) => (
+            <div className="flex justify-center mt-0.5 sm:mt-1 space-x-0.5">
+              {/* Show different markers based on screen size */}
+              <div className="hidden sm:flex space-x-0.5 justify-center">
+                {todoCount <= 3 ? (
+                  // For 1-3 todos, show individual dots on larger screens
+                  Array.from({ length: todoCount }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isSelectedDate(day)
+                          ? 'bg-primary-content'
+                          : 'bg-primary'
+                      }`}
+                    ></div>
+                  ))
+                ) : (
+                  // For more than 3 todos, show count badge
                   <div
-                    key={i}
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      isSelectedDate(day) ? 'bg-primary-content' : 'bg-primary'
+                    className={`text-xs rounded-full px-1.5 py-0 text-center min-w-5 ${
+                      isSelectedDate(day)
+                        ? 'bg-primary-content text-primary'
+                        : 'bg-primary text-primary-content'
                     }`}
-                  ></div>
-                ))
-              ) : (
-                // For more than 3 todos, show count badge
+                  >
+                    {todoCount}
+                  </div>
+                )}
+              </div>
+
+              {/* Always use a single dot on small screens */}
+              <div className="sm:hidden">
                 <div
-                  className={`text-xs rounded-full px-1.5 py-0 text-center min-w-5 ${
-                    isSelectedDate(day)
-                      ? 'bg-primary-content text-primary'
-                      : 'bg-primary text-primary-content'
+                  className={`w-1 h-1 rounded-full mx-auto ${
+                    isSelectedDate(day) ? 'bg-primary-content' : 'bg-primary'
                   }`}
-                >
-                  {todoCount}
-                </div>
-              )}
+                ></div>
+              </div>
             </div>
           )}
         </div>,
@@ -263,7 +280,7 @@ const CalendarComponent = () => {
     }
 
     calendarDays.push(
-      <div key="days" className="grid grid-cols-7 gap-1">
+      <div key="days" className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {days}
       </div>,
     );
@@ -272,33 +289,33 @@ const CalendarComponent = () => {
   };
 
   return (
-    <div className="calendar-widget bg-base-100 p-4 rounded-box shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <CalendarIcon size={20} className="text-primary" />
-          <h2 className="font-bold text-lg">Calendar</h2>
+    <div className="calendar-widget bg-base-100 p-3 sm:p-4 rounded-box shadow-sm">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <CalendarIcon size={16} className="sm:w-5 sm:h-5 text-primary" />
+          <h2 className="font-bold text-base sm:text-lg">Calendar</h2>
         </div>
-        <button onClick={goToToday} className="btn btn-xs btn-ghost">
+        <button onClick={goToToday} className="btn btn-xs btn-ghost text-xs">
           Today
         </button>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-3 sm:mb-4">
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={goToPreviousMonth}
-            className="btn btn-sm btn-ghost btn-square"
+            className="btn btn-xs sm:btn-sm btn-ghost btn-square"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={16} className="sm:w-4 sm:h-4" />
           </button>
-          <div className="font-medium">
+          <div className="font-medium text-sm sm:text-base">
             {monthName} {currentYear}
           </div>
           <button
             onClick={goToNextMonth}
-            className="btn btn-sm btn-ghost btn-square"
+            className="btn btn-xs sm:btn-sm btn-ghost btn-square"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={16} className="sm:w-4 sm:h-4" />
           </button>
         </div>
 
@@ -307,7 +324,7 @@ const CalendarComponent = () => {
         </div>
       </div>
 
-      <div className="text-sm text-center text-base-content/70 mt-2">
+      <div className="text-xs sm:text-sm text-center text-base-content/70 mt-2">
         Selected: <span className="font-medium">{selectedDateStr}</span>
       </div>
     </div>
